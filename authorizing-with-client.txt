@@ -1,0 +1,43 @@
+# This is the url of the guide I was following:		https://developers.google.com/api-client-library/python/auth/installed-app#handlingresponse
+# while working in the google-api-client virtualenv:
+import webserver_new
+from webserver_new import WebServer
+from oauth2client import client
+ client_path = '/home/justin/Downloads/gdrive_client_secret_696694623422-rte0oijs03i83paq0efj7m46nvqphuuj.apps.googleusercontent.com.json'
+webserver = WebServer()
+scope = 'https://www.googleapis.com/auth/drive'
+flow = client.flow_from_clientsecrets(client_path, scope=scope, redirect_uri=webserver.redirect_uri)
+auth_uri = flow.step1_get_authorize_url()
+import webbrowser
+def get_auth_code(url):
+    webbrowser.open_new(url)
+    val = None
+    print('the val is: ', val)
+    val = webserver.catch_response()
+    print('the val after calling webserver.catch_response() is: ', val)
+    return val
+
+code = get_auth_code(auth_uri)
+
+
+credentials = flow.step2_exchange(code)
+import httplib2
+http_auth = credentials.authorize(httplib2.Http())
+# ^^ After the above line, I should be able to build an apiclient.service object, and make API calls...
+# I was up to:	"Calling Google APIs..
+
+# Actually, I built a "service" object with the following:
+http_auth = credentials.authorize(httplib2.Http())
+from apiclient.discovery import build
+drive_service = build('drive', 'v2', http=http_auth)
+
+# I then called a method with:
+files = drive_service.files().list().execute()
+
+# I think I now have to create a "storage" object to store the credentials.. but the credentials object has the method: credentials.to_json()
+<<<<<<< HEAD
+=======
+
+>>>>>>> 01a6f107e983216ebaf031cb9a3751caeca24e63
+
+# which I hope stores the credentials..
