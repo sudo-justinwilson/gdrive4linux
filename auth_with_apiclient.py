@@ -2,7 +2,7 @@ import webbrowser
 import httplib2
 from webserver_new import WebServer
 from apiclient.discovery import build
-from oauth2client import client
+from oauth2client import client, file
 
 class auth_with_apiclient.py:
     """
@@ -40,4 +40,15 @@ class auth_with_apiclient.py:
     token_path = $PATH
     import json
     json.dump(open(token_path, 'w'), credentials.to_json())
+    # I think it would be better to use the oauth2client.file.Storage object to store the credentials:
+    token_storage_path = '/home/justin/tmp/.tokens.json'
+    file_Storage_object = file.Storage(token_storage_path)
+    # To store the credentials, we need to acquire a lock:
+    file_Storage_object.acquire_lock()
+    # then write the credentials to disk:
+    file_Storage_object.put(credentials)
+    # release lock:
+    file_Storage_object.release_lock()
 
+    # TODO:
+    #   - write methods to retrieve credentials from file.
