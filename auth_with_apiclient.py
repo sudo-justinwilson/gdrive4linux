@@ -31,7 +31,9 @@ class auth_with_apiclient:
         if not url:
             url = self.auth_uri
         if not auth_code:
-            auth_code = self.get_auth_code(url)
+            #auth_code = self.get_auth_code(url)
+            auth_code = self.auth_code
+            #raise Exception('no auth_code was passed to create_service')
         #if not http_auth:
         #    http_auth = credentials.authorize(httplib2.Http())
         #    http_auth = self.auth_uri(url)
@@ -47,7 +49,8 @@ class auth_with_apiclient:
         webbrowser.open_new(url)
         val = None
         print('the val is: ', val)
-        val = webserver.catch_response()
+        #val = webserver.catch_response()
+        val = self.webserver.catch_response()
         print('the val after calling webserver.catch_response() is: ', val)
         return val
     
@@ -94,3 +97,4 @@ if __name__ == '__main__':
     instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, token_path='/home/justin/tmp/token_from_my_service_object')
     service = instance.create_service()
     print(dir(service))
+    print(type(service))
