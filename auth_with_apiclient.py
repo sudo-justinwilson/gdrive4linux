@@ -43,7 +43,7 @@ class auth_with_apiclient:
         drive_service = build('drive', 'v2', http=http_auth)
         return drive_service
 
-    def get_auth_code(url):
+    def get_auth_code(self, url):
         webbrowser.open_new(url)
         val = None
         print('the val is: ', val)
@@ -88,6 +88,9 @@ class auth_with_apiclient:
     #   - I was thinking how we could hide the client id and secret using pickle??? Maybe we could pickle the ClientCredentials object, then retrieve it by unpickling it??
 
 if __name__ == '__main__':
-    instance = auth_with_apiclient(client_path='/jome/justin/tmp/auth_with_apiclient_object', scope='https://www.googleapis.com/auth/drive', token_path='/home/justin/tmp/token_from_my_service_object')
+    #instance = auth_with_apiclient(client_path='/home/justin/tmp/auth_with_apiclient_object', scope='https://www.googleapis.com/auth/drive', token_path='/home/justin/tmp/token_from_my_service_object')
+    client_secrets = "/home/justin/Downloads/gdrive_client_secret_696694623422-rte0oijs03i83paq0efj7m46nvqphuuj.apps.googleusercontent.com.json"
+    gdrive_scope = 'https://www.googleapis.com/auth/drive'
+    instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, token_path='/home/justin/tmp/token_from_my_service_object')
     service = instance.create_service()
     print(dir(service))

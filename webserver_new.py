@@ -36,10 +36,10 @@ class WebServer:
     def _Nonce(self, size=10, chars=string.ascii_uppercase + string.digits):
         return ''.join(random.choice(chars) for _ in range(size))
 
-### NEW SERVE_HTML
-
-    #def serve_html(self, use_nonce=False):
     def catch_response(self):
+        """
+        A method that intercepts the path component (which is where the auth_code is stored to exchange for an access token) of an HTTP GET request.
+        """
         PORT = self._port
         httpd = socketserver.TCPServer(("", PORT), self.handler)
         httpd.handle_request()
@@ -55,12 +55,11 @@ class WebServer:
             print('entered "for element." loop...')
             if element.startswith('code'):
                 code = element.split(sep='=')[1] 
-                print('there was a mathch with code, and it is: ', code)
+                print('there was a match with code, and it is: ', code)
+                break
             else:
                 print('nothing starting with "code" was found...')
         return code
-
-### NEW SERVE_HTML
 
 class Handler(SimpleHTTPRequestHandler):
     path = ''
@@ -75,24 +74,55 @@ class Handler(SimpleHTTPRequestHandler):
         http.server.SimpleHTTPRequestHandler.do_GET(self)
         print('Handler.path is: ', Handler.path)
 
+
 class Testing:
     """
-    For testing if this module works..
+    This test class tests that the following operations work:
+        - create a webserver that listens on a random port.
+        - the webserver should intercept the "path" component of a received HTTP GET request, and return it.
+    The way this object performs the test is by creating a listening webserver on one thread, and creating a requests object that sends an http get request, on a second concurrent thread.
+    So if the webserver returns the url requested in the get request as a string, the webserver class works, else it doesn't...
     """
 
-    def __init__(self):
-        self.wl = WebServer()
-        self.port1 = self.wl._port
+    def __init__(self, params = None):
+        self.params = params
+        self.test_webserver = WebServer()
+        self.port1 = self.test_webserver._port
         print('the port is: ', self.port1)
-        self.p1 = Process(target=self.wl.serve_html)
+        # a pipe has an "IN" end, and an "OUT" end:
         self.conn_in, self.conn_out = Pipe()
-        self.p2 = Process(target=self.request, args=(self.port1, self.conn_in,))
+        # create a test webserver that to parse HTTP GET request, as the first concurrent process:
+        #self.p1 = Process(target=self.test_webserver.catch_response)
+        self.p1 = Process(target=self.catch_code, args=(self.conn_out,))
+        # call self.request, with the port and conn_in as args, as the second concurrent process:
+        if params:
+            self.p2 = Process(target=self.request, args=(self.port1, self.conn_in, self.params) )
+        else:
+            self.p2 = Process(target=self.request, args=(self.port1, self.conn_in) )
 
-    def request(self, port, conn):
-        s = 'http://127.0.0.1:' + str(port)
-        r = requests.get(s)
+    def catch_code(self, conn):
+        """
+        Test if the params sent to test_webserver match the code returned.
+        """
+        server = self.test_webserver
+        # store the would-be code:
+        code = self.test_webserver.catch_response()
+        # send the would-be code to the pipe:
+        conn.send(code)
+
+    def request(self, port, conn, PARAMS):
+        """
+        Send a get request to the test webserver.
+        PARAMS (dict) = key, values to be used in the request string
+        """
+        test_target_url = 'http://127.0.0.1:' + str(port)
+        if not PARAMS:
+            r = requests.get(test_target_url)
+        else:
+            r = requests.get(test_target_url, params = PARAMS)
         print('this is the status_code: ', r.status_code)
-        conn.send(r.text)
+        #conn.send(r.text)
+        conn.send(r.status_code)
         if r.status_code == 200:
             return True
         else:
@@ -108,10 +138,16 @@ class Testing:
                 self.p2.start()
                 self.p2.join()
                 print('p2 has started')
-                if 'INDEX.HTML FILE' in self.conn_out.recv():
+                #if 'INDEX.HTML FILE' in self.conn_out.recv():
+                #if 'INDEX.HTML FILE' in self.conn_out.recv():
+                if self.conn_out.recv() == 200:
                     print("PASS: Oauth.Webserver works!")
-                    break
-                print('this is the pipe output: ', self.conn_out.recv())
+                    self.p1.terminate()
+                    #print('this is the pipe output: ', self.conn_out.recv())
+                    code_returned = self.conn_in.recv()
+                    #print('the code returned from self.conn_in.recv() is: ', code_returned)
+                    #break
+                    return code_returned
                 if t.exitcode is None:
                     break
             except Exception:
@@ -120,5 +156,11 @@ class Testing:
         print('loop finished')
 
 if __name__ == '__main__':
-    t = Testing()
-    t.test()
+    param_sent = { 'code' : 'THIS_IS_THE_PARAMS_SENT_FROM_Testing_CLASS' }
+    print('the param sent was: ', param_sent)
+    t1 = Testing(params = param_sent)
+    param_received = t1.test()
+    print('the param received was: ', param_received)
+    if param_received == param_sent['code']:
+        print('everything works!')
+        # TODO: create a main() method from above code.
