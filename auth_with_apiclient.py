@@ -23,7 +23,8 @@ class auth_with_apiclient:
         self.webserver = WebServer()
         self.flow = client.flow_from_clientsecrets(self.client_path, scope = self.scope, redirect_uri = self.webserver.redirect_uri)
         self.auth_uri = self.flow.step1_get_authorize_url()
-        self.auth_code = self.get_auth_code(self.auth_uri)
+        # I removed self.auth_code below, because it calls self.get_auth_code(), which opens up a webbrowser on __init__:
+        #self.auth_code = self.get_auth_code(self.auth_uri)
 
     def create_service(self, auth_code=None, url=None, http_auth=None):
         """
@@ -32,20 +33,22 @@ class auth_with_apiclient:
         if not url:
             url = self.auth_uri
         if not auth_code:
-            #auth_code = self.get_auth_code(url)
-            auth_code = self.auth_code
+            auth_code = self.get_auth_code(url)
+            #auth_code = self.auth_code
             #raise Exception('no auth_code was passed to create_service')
         #if not http_auth:
         #    http_auth = credentials.authorize(httplib2.Http())
         #    http_auth = self.auth_uri(url)
         credentials = self.flow.step2_exchange(auth_code)
-        token_path = self.token_path
-        pickle.dump( self, open(token_path, 'wb') )
+        #token_path = self.token_path
+        pickle.dump( credentials, open(self.token_path, 'wb') )
         if not http_auth:
             http_auth = credentials.authorize(httplib2.Http())
 
         # this is the service to make the API calls:
         drive_service = build('drive', 'v2', http=http_auth)
+        # I tried pickling the above credentials object, but when I unpickle it, it returns an auth_with_apiclient (self) object?? So I'm trying to pickle the below service object. What I'm trying to do is essentially store the tokens, but I'm having difficulty using pickle to store them. Do I have to create a seperate user_tokens object, and pickle them??
+        pickle.dump( drive_service, open(self.token_path, 'wb') )
         return drive_service
 
     def get_auth_code(self, url):
@@ -56,6 +59,26 @@ class auth_with_apiclient:
         val = self.webserver.catch_response()
         print('the val after calling webserver.catch_response() is: ', val)
         return val
+
+    #def unpickle_credentials(self, path=None):
+    #    """
+    #    This method unpickles the credentials object, that was pickled with the "create_service" method, and should return an authenticated OAuth2Credentials object.
+    #    """
+
+    #def flow(self, client_path=None, scope=None, redirect_uri=None):
+    #    """
+    #    This is a method to start the oauth2 flow (so it doesn't start on __init__).
+    #    """
+    #    if not client_path:
+    #        client_path = self.client_path
+    #    if not scope:
+    #        scope = self.scope
+    #    if not redirect_uri:
+    #        redirect_uri = self.webserver.redirect_uri
+
+    #    flow = client.flow_from_clientsecrets(client_path, scope = scope, redirect_uri = redirect_uri)
+    #    auth_uri = flow.step1_get_authorize_url()
+    #    auth_code = self.get_auth_code(auth_uri)
     
     #credentials = self.flow.step2_exchange(code)
     #
