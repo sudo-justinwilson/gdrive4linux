@@ -1,6 +1,5 @@
 import webbrowser
 import httplib2
-import pickle
 from webserver import WebServer
 from apiclient.discovery import build
 from oauth2client import client, file
@@ -39,8 +38,6 @@ class auth_with_apiclient:
         #    http_auth = credentials.authorize(httplib2.Http())
         #    http_auth = self.auth_uri(url)
         credentials = self.flow.step2_exchange(auth_code)
-        token_path = self.token_path
-        pickle.dump( self, open(token_path, 'wb') )
         if not http_auth:
             http_auth = credentials.authorize(httplib2.Http())
 
@@ -92,13 +89,12 @@ class auth_with_apiclient:
     #   - the docs advise that if the redirect_uri serves html, then as we know, the authorization code is visible in the URL. We can prevent this by intercepting the auth_code, then redirecting the browser to another page..
     # HOW DO WE REDIRECT THE PAGE WITH PYTHON???
     #   - I was thinking how we could hide the client id and secret using pickle??? Maybe we could pickle the ClientCredentials object, then retrieve it by unpickling it??
-    #   - I need to rewrite the webserver.auth_code method, so I can just pass a string to look for, instead of hard-coding looking for the keyword "code". This would make the method more general, and I coul possibly use it for intercepting any string from incoming HTTP requests.
 
 if __name__ == '__main__':
     #instance = auth_with_apiclient(client_path='/home/justin/tmp/auth_with_apiclient_object', scope='https://www.googleapis.com/auth/drive', token_path='/home/justin/tmp/token_from_my_service_object')
     client_secrets = "/home/justin/Downloads/gdrive_client_secret_696694623422-rte0oijs03i83paq0efj7m46nvqphuuj.apps.googleusercontent.com.json"
     gdrive_scope = 'https://www.googleapis.com/auth/drive'
-    instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, token_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
+    instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, token_path='/home/justin/tmp/token_from_my_service_object')
     service = instance.create_service()
     print(dir(service))
     print(type(service))
