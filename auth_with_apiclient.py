@@ -1,6 +1,6 @@
 import webbrowser
 import httplib2
-from webserver_new import WebServer
+from webserver import WebServer
 from apiclient.discovery import build
 from oauth2client import client, file
 
