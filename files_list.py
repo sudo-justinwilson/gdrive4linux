@@ -123,9 +123,26 @@ def download_file(service, file_id, local_fd):
       return
 
 if __name__ == '__main__':
-    client_secrets = "/home/justin/Downloads/gdrive4linux-client_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
+    #client_secrets = "/home/justin/Downloads/gdrive4linux-client_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
+    TERMUX_HOME_PATH = "/data/data/com.termux/files/home/"
+    PATH_PREFIX = "downloads/"
+    CLIENT_SECRETS = TERMUX_HOME_PATH + PATH_PREFIX + "gdrive4linux_client_secrets.json"
+    PICKLED_CREDS = TERMUX_HOME_PATH + PATH_PREFIX + "gdrive4linux_credentials.pickle"
     gdrive_scope = 'https://www.googleapis.com/auth/drive'
-    instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
+    client_secrets = CLIENT_SECRETS
+    instance = auth_with_apiclient(client_path=CLIENT_SECRETS, scope=gdrive_scope, pickle_path=PICKLED_CREDS)
+    #gdrive_scope = 'https://www.googleapis.com/auth/drive'
+    #instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
     service = instance.create_service()
     fid = 'root'
     print_files_in_folder(service, fid)
+
+    ## START TERMUX
+    ## for android tablet:
+    TERMUX_HOME_PATH = "/data/data/com.termux/files/home/"
+    PATH_PREFIX = "downloads/"
+    CLIENT_SECRETS = TERMUX_HOME_PATH + PATH_PREFIX + "gdrive4linux_client_secrets.json"
+    PICKLED_CREDS = TERMUX_HOME_PATH + PATH_PREFIX + "gdrive4linux_credentials.pickle"
+    gdrive_scope = 'https://www.googleapis.com/auth/drive'
+    instance = auth_with_apiclient(client_path=CLIENT_SECRETS, scope=gdrive_scope, pickle_path=PICKLED_CREDS)
+    ## END TERMUX

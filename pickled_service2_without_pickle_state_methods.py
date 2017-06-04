@@ -58,9 +58,18 @@ class auth_with_apiclient:
 
 if __name__ == '__main__':
     #instance = auth_with_apiclient(client_path='/home/justin/tmp/auth_with_apiclient_object', scope='https://www.googleapis.com/auth/drive', pickle_path='/home/justin/tmp/token_from_my_service_object')
-    client_secrets = "/home/justin/Downloads/gdrive_client_secret_696694623422-rte0oijs03i83paq0efj7m46nvqphuuj.apps.googleusercontent.com.json"
+    #client_secrets = "/home/justin/Downloads/gdrive_client_secret_696694623422-rte0oijs03i83paq0efj7m46nvqphuuj.apps.googleusercontent.com.json"
+    ## START TERMUX
+    ## for android tablet:
+    TERMUX_HOME_PATH = "/data/data/com.termux/files/home/"
+    PATH_PREFIX = "downloads/"
+    CLIENT_SECRETS = TERMUX_HOME_PATH + PATH_PREFIX + "gdrive4linux_client_secrets.json"
+    PICKLED_CREDS = TERMUX_HOME_PATH + PATH_PREFIX + "gdrive4linux_credentials.pickle"
     gdrive_scope = 'https://www.googleapis.com/auth/drive'
-    instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
+    instance = auth_with_apiclient(client_path=CLIENT_SECRETS, scope=gdrive_scope, pickle_path=PICKLED_CREDS)
+    ## END TERMUX
+    #gdrive_scope = 'https://www.googleapis.com/auth/drive'
+    #instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
     print('the pickle flag before calling create_service is set to: ', instance.pickled)
     service = instance.create_service()
     print('the pickle flag after create_service, is set to: ', instance.pickled)
