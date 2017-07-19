@@ -4,7 +4,7 @@ from pickled_service2_without_pickle_state_methods import auth_with_apiclient
 
 
 
-def print_files_in_folder(service, folder_id):
+def print_files_in_folder(service, folder_id, print_metadata=False):
   """print files belonging to a folder.
   This prints the child id, and I also call print_file_metadata(), which requires a child_id as an arg, and returns the name of the file, and the MIME type.
 
@@ -25,9 +25,10 @@ def print_files_in_folder(service, folder_id):
         print('START NEW FILE')
         print('File Id: %s' % child['id'])
         print('The whole file is: ', child)
-        print('Here is when I call the print_file_metadata:')
-        print_file_metadata(service, child['id'], whole_file=True)
-        print('END NEW FILE')
+        if print_metadata:
+            print('Here is when I call the print_file_metadata:')
+            print_file_metadata(service, child['id'], whole_file=True)
+            print('END NEW FILE')
       page_token = children.get('nextPageToken')
       if not page_token:
         break
@@ -129,6 +130,7 @@ if __name__ == '__main__':
     instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
     service = instance.create_service()
     fid = 'root'
+    #print_files_in_folder(service, fid, print_metadata=True)
     print_files_in_folder(service, fid)
     # This was my attempt to download a file, but as yet, it has been unsuccessful:
     ##file_id = '0B6ujjnScaN51cTFUWW9vUmEyQ1k'
@@ -140,8 +142,8 @@ if __name__ == '__main__':
     #download_file(service, file_id, f)
     # HERE'S WHEN I CALL THE print_file_metadata() method:
     #print_file_metadata(service, file_id, whole_file=False):
-    print('this is when I called print_file_metadata with whole_file=True')
-    print_file_metadata(service, file_id, whole_file=True)
+    ##print('this is when I called print_file_metadata with whole_file=True')
+    ##print_file_metadata(service, file_id, whole_file=True)
     #print_file_content(service, file_id):
     #print_file_content(service, file_id)
     # Here's how to search ofr a JPEG file, and print the title and file_id:
