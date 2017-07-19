@@ -123,20 +123,21 @@ def download_file(service, file_id, local_fd):
       return
 
 if __name__ == '__main__':
-    client_secrets = "/home/justin/Downloads/gdrive4linux-client_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
+    #client_secrets = "/home/justin/Downloads/gdrive4linux-client_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
+    client_secrets = "/home/justin/Downloads/gdrive4linux_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
     gdrive_scope = 'https://www.googleapis.com/auth/drive'
     instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
     service = instance.create_service()
     fid = 'root'
-    #print_files_in_folder(service, fid)
+    print_files_in_folder(service, fid)
     # This was my attempt to download a file, but as yet, it has been unsuccessful:
-    file_id = '0B6ujjnScaN51cTFUWW9vUmEyQ1k'
-    local_path = '/home/justin/tmp/gdrive4linux_test_download_file'
+    ##file_id = '0B6ujjnScaN51cTFUWW9vUmEyQ1k'
+    ##local_path = '/home/justin/tmp/gdrive4linux_test_download_file'
     #local_file = open(local_path, 'wb')
     #download_file(service, file_id, local_fd):
     #download_file(service, file_id, local_fd):
-    with open(local_path, 'wb') as f:
-        download_file(service, file_id, f)
+    ##with open(local_path, 'wb') as f:
+    #download_file(service, file_id, f)
     # HERE'S WHEN I CALL THE print_file_metadata() method:
     #print_file_metadata(service, file_id, whole_file=False):
     print('this is when I called print_file_metadata with whole_file=True')
