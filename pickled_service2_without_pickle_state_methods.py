@@ -58,17 +58,18 @@ class auth_with_apiclient:
 
 if __name__ == '__main__':
     #instance = auth_with_apiclient(client_path='/home/justin/tmp/auth_with_apiclient_object', scope='https://www.googleapis.com/auth/drive', pickle_path='/home/justin/tmp/token_from_my_service_object')
-    client_secrets = "/home/justin/Downloads/gdrive_client_secret_696694623422-rte0oijs03i83paq0efj7m46nvqphuuj.apps.googleusercontent.com.json"
+    client_secrets = "/home/justin/Downloads/gdrive4linux-client_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
     gdrive_scope = 'https://www.googleapis.com/auth/drive'
     instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
     print('the pickle flag before calling create_service is set to: ', instance.pickled)
     service = instance.create_service()
     print('the pickle flag after create_service, is set to: ', instance.pickled)
-    print(dir(service))
-    print(type(service))
-    print("Here is the unpickled credentials introspection: ", dir(instance.credentials))
-    print(type(instance.credentials))
-    print(instance.credentials.to_json())
+    #print(dir(service))
+    #print(type(service))
+    print('Here is when I call dir(service.files): ', dir(service.files))
+    #print("Here is the unpickled credentials introspection: ", dir(instance.credentials))
+    #print(type(instance.credentials))
+    #print(instance.credentials.to_json())
     if instance.credentials.access_token_expired:
         print('the access_token_expired is True')
     else:

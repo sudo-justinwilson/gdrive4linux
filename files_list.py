@@ -128,4 +128,32 @@ if __name__ == '__main__':
     instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
     service = instance.create_service()
     fid = 'root'
-    print_files_in_folder(service, fid)
+    #print_files_in_folder(service, fid)
+    # This was my attempt to download a file, but as yet, it has been unsuccessful:
+    file_id = '0B6ujjnScaN51cTFUWW9vUmEyQ1k'
+    local_path = '/home/justin/tmp/gdrive4linux_test_download_file'
+    #local_file = open(local_path, 'wb')
+    #download_file(service, file_id, local_fd):
+    #download_file(service, file_id, local_fd):
+    with open(local_path, 'wb') as f:
+        download_file(service, file_id, f)
+    # HERE'S WHEN I CALL THE print_file_metadata() method:
+    #print_file_metadata(service, file_id, whole_file=False):
+    print('this is when I called print_file_metadata with whole_file=True')
+    print_file_metadata(service, file_id, whole_file=True)
+    #print_file_content(service, file_id):
+    #print_file_content(service, file_id)
+    # Here's how to search ofr a JPEG file, and print the title and file_id:
+    #page_token = None
+    #while True:
+    #    #response = service.files().list(q="mimeType='image/jpeg'",
+    #    response = service.files().list(q="mimeType != 'application/vnd.google-apps.folder'",
+    #                                         spaces='drive',
+    #                                         fields='nextPageToken, items(id, title)',
+    #                                         pageToken=page_token).execute()
+    #    for file in response.get('items', []):
+    #        # Process change
+    #        print('Found file: %s (%s)' % (file.get('title'), file.get('id')))
+    #    page_token = response.get('nextPageToken', None)
+    #    if page_token is None:
+    #        break;
