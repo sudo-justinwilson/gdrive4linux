@@ -146,7 +146,7 @@ if __name__ == '__main__':
     # I think this is the ATOM RFC text file?? Actually, I tried calling the download_file() method on it, and it said that the file id doesn't exist??:
     #fid = '0B6ujjnScaN51cTFUWW9vUmEyQ1k'
     ##
-    # 2017-07-19: I confirmed that the "download_file()" method worked with the fid for INSTALL.Docker.rst file (in ~/tmp):
+    # 2017-07-19: I confirmed that the "download_file()" method worked with the fid for INSTALL.Docker.rst and a pdf file (in ~/tmp):
     local_path = '/home/justin/tmp/gdrive4linux_test_download_file-today'
     with open(local_path, 'wb') as f:
         download_file(service, fid, f)
