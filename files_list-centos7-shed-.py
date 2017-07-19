@@ -124,28 +124,41 @@ def download_file(service, file_id, local_fd):
       return
 
 if __name__ == '__main__':
+    # STANDARD LOGISTICS:
     #client_secrets = "/home/justin/Downloads/gdrive4linux-client_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
     client_secrets = "/home/justin/Downloads/gdrive4linux_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
     gdrive_scope = 'https://www.googleapis.com/auth/drive'
     instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
     service = instance.create_service()
-    fid = 'root'
+    ##
+    # 'root' is alias for root dir
+    #fid = 'root'
+    # Here is the file id for "INSTALL.Docker.rst":
+    #fid = '0B2Vt6e4DFEDGT1EtdXZrZUJ3N1U'
+    # Here is the file id for a pdf file:
+    fid = '0B2Vt6e4DFEDGQ1RaZlJYRzZXeWs'
+    ##
+    # Use following methods to print the files in a gdrive dir:
     #print_files_in_folder(service, fid, print_metadata=True)
-    print_files_in_folder(service, fid)
+    #print_files_in_folder(service, fid)
+    ##
     # This was my attempt to download a file, but as yet, it has been unsuccessful:
-    ##file_id = '0B6ujjnScaN51cTFUWW9vUmEyQ1k'
-    ##local_path = '/home/justin/tmp/gdrive4linux_test_download_file'
-    #local_file = open(local_path, 'wb')
-    #download_file(service, file_id, local_fd):
-    #download_file(service, file_id, local_fd):
-    ##with open(local_path, 'wb') as f:
-    #download_file(service, file_id, f)
+    # I think this is the ATOM RFC text file?? Actually, I tried calling the download_file() method on it, and it said that the file id doesn't exist??:
+    #fid = '0B6ujjnScaN51cTFUWW9vUmEyQ1k'
+    ##
+    # 2017-07-19: I confirmed that the "download_file()" method worked with the fid for INSTALL.Docker.rst file (in ~/tmp):
+    local_path = '/home/justin/tmp/gdrive4linux_test_download_file-today'
+    with open(local_path, 'wb') as f:
+        download_file(service, fid, f)
+    ##
     # HERE'S WHEN I CALL THE print_file_metadata() method:
     #print_file_metadata(service, file_id, whole_file=False):
     ##print('this is when I called print_file_metadata with whole_file=True')
     ##print_file_metadata(service, file_id, whole_file=True)
-    #print_file_content(service, file_id):
-    #print_file_content(service, file_id)
+    ##
+    # 2017-07-19: I was able to print the contents of the "INSTALL.Docker.rst" file, with the following method:
+    #print_file_content(service, fid)
+    ##
     # Here's how to search ofr a JPEG file, and print the title and file_id:
     #page_token = None
     #while True:
