@@ -131,12 +131,18 @@ if __name__ == '__main__':
     instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
     service = instance.create_service()
     ##
+    ## This is to introspect the actual object:
+    print('Here is the object introspection:')
+    print(dir(service))
+    print('heres when I call the about method:')
+    service.about.get()
+    ##
     # 'root' is alias for root dir
     #fid = 'root'
     # Here is the file id for "INSTALL.Docker.rst":
     #fid = '0B2Vt6e4DFEDGT1EtdXZrZUJ3N1U'
     # Here is the file id for a pdf file:
-    fid = '0B2Vt6e4DFEDGQ1RaZlJYRzZXeWs'
+    #fid = '0B2Vt6e4DFEDGQ1RaZlJYRzZXeWs'
     ##
     # Use following methods to print the files in a gdrive dir:
     #print_files_in_folder(service, fid, print_metadata=True)
@@ -147,9 +153,9 @@ if __name__ == '__main__':
     #fid = '0B6ujjnScaN51cTFUWW9vUmEyQ1k'
     ##
     # 2017-07-19: I confirmed that the "download_file()" method worked with the fid for INSTALL.Docker.rst and a pdf file (in ~/tmp):
-    local_path = '/home/justin/tmp/gdrive4linux_test_download_file-today'
-    with open(local_path, 'wb') as f:
-        download_file(service, fid, f)
+    #local_path = '/home/justin/tmp/gdrive4linux_test_download_file-today'
+    #with open(local_path, 'wb') as f:
+    #    download_file(service, fid, f)
     ##
     # HERE'S WHEN I CALL THE print_file_metadata() method:
     #print_file_metadata(service, file_id, whole_file=False):

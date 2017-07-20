@@ -12,10 +12,17 @@ class auth_with_apiclient:
     ** It *should* return an google OAuth2Credentials object.   **
     """
     def __init__(self, client_path=None, scope=None, pickle_path=None):
+        """
+        Create an oauth2.0 authorized Google drive service instance, that can make API calls with the provided Python library. Creating an instance will return an object that can make the calls.
+
+            client_path: This is the client credentials that is downloaded from the google API dashboard as a json file.
+            scope: The scope is a string, which lets google what permissions the client app is requesting. IE: read, write, etc..
+            pickle_path: This is the path to where the authorized service object will be stored, pickled.
+        """
         if not client_path:
-            raise Exception('A path to a json file containing the client_id and client_secret needs to be provided')
+            raise Exception('A path to a json file containing the client_id and client_secret needs to be provided.')
         if not scope:
-            raise Exception('A scope needs to be provided')
+            raise Exception('A scope needs to be provided with the requested permisisons.')
         if not pickle_path:
             raise Exception('A pickle_path needs to be provided')
         self.client_path = client_path
@@ -59,7 +66,6 @@ class auth_with_apiclient:
 if __name__ == '__main__':
     #instance = auth_with_apiclient(client_path='/home/justin/tmp/auth_with_apiclient_object', scope='https://www.googleapis.com/auth/drive', pickle_path='/home/justin/tmp/token_from_my_service_object')
     client_secrets = "/home/justin/Downloads/gdrive4linux-client_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
-    print('Here is what the client_secrets is:\t', client_secrets)
     gdrive_scope = 'https://www.googleapis.com/auth/drive'
     instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
     print('the pickle flag before calling create_service is set to: ', instance.pickled)
