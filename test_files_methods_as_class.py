@@ -24,7 +24,8 @@ class SyncService:
         about = self.service.about().get().execute()
         email = about['user']['emailAddress']
         self._GDRIVE_DIR = os.path.expanduser('~/' + email)
-        os.mkdir(self._GDRIVE_DIR)
+        if not os.path.exists(self._GDRIVE_DIR):
+            os.mkdir(self._GDRIVE_DIR)
         print('made it HERE!')
 
     
@@ -158,6 +159,7 @@ if __name__ == '__main__':
     # STANDARD LOGISTICS:
     #client_secrets = "/home/justin/Downloads/gdrive4linux-client_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
     syncservice = SyncService()
+    print(dir(SyncService))
     #client_secrets = "/home/justin/Downloads/gdrive4linux_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
     #gdrive_scope = 'https://www.googleapis.com/auth/drive'
     #instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
