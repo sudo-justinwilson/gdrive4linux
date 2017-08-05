@@ -53,7 +53,7 @@ class SyncService:
             print('The whole file is: ', child)
             if print_metadata:
                 print('Here is when I call the print_file_metadata:')
-                print_file_metadata(self.service, child['id'], whole_file=True)
+                self.print_file_metadata(child['id'], whole_file=True)
                 print('END NEW FILE')
           page_token = children.get('nextPageToken')
           if not page_token:
@@ -159,7 +159,14 @@ if __name__ == '__main__':
     # STANDARD LOGISTICS:
     #client_secrets = "/home/justin/Downloads/gdrive4linux-client_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
     syncservice = SyncService()
-    print(dir(SyncService))
+    print("Here is when I inspect a SyncService() object: ")
+    print(dir(syncservice))
+    print(type(syncservice))
+    # Now I'm trying to print the methods of a SyncService.service object:
+    service = syncservice.service
+    print("This is the actual service object: ")
+    print(type(service))
+    print(dir(service))
     #client_secrets = "/home/justin/Downloads/gdrive4linux_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
     #gdrive_scope = 'https://www.googleapis.com/auth/drive'
     #instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
@@ -183,9 +190,19 @@ if __name__ == '__main__':
     #fid = '0B2Vt6e4DFEDGT1EtdXZrZUJ3N1U'
     # Here is the file id for a pdf file:
     #fid = '0B2Vt6e4DFEDGQ1RaZlJYRzZXeWs'
+    #Here is the 'id' for the "Books" directory, in root:
+    Books_id = '0B2Vt6e4DFEDGMTBqOGhpa2FjMFE'
+    # Here is the file id for "new-books", which is a sub-directory of "Books" (which is a sub-directory of 'root'):
+    # NOTE: I couldn't use "new-books" as a variable name, because it contains a "-" (which is an operator).. don't think I can avoid that...
+    new_books_id = '0B2Vt6e4DFEDGemVrX2VjdFI1TVk'
+    # Here is the file id for the "Pre-Calibre books" directory:
+    precalibre_books_id = '0B2Vt6e4DFEDGWTNpM0xnVUtDVmc'
     ##
     # Use following methods to print the files in a gdrive dir:
     #print_files_in_folder(service, fid, print_metadata=True)
+    #syncservice.print_files_in_folder(precalibre_books_id, print_metadata=True)
+    syncservice.print_files_in_folder(precalibre_books_id)
+    #syncservice.print_files_in_folder(Books_id)
     #print_files_in_folder(service, fid)
     ##
     # This was my attempt to download a file, but as yet, it has been unsuccessful:
