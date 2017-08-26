@@ -10,21 +10,31 @@ class auth_with_apiclient:
     """
     My implementation of using the google-api-client module to create an authorized service object, which can make oauth2.0 authorized Google API calls.
     ** It *should* return an google OAuth2Credentials object.   **
+
+        Args:
+        - client_path:      This is the path to the app credentials from the Google developer's console.
+        - scope:            This specifies the amount of access (or permissions) requested from Google.
+        - pickle_path:      Specifies the path where the access and refresh tokens are stored as a pickled file.
     """
     def __init__(self, client_path=None, scope=None, pickle_path=None):
         if not client_path:
             raise Exception('A path to a json file containing the client_id and client_secret needs to be provided')
+        # Mandatory arg:
         if not scope:
             raise Exception('A scope needs to be provided')
+        # Mandatory arg:
         if not pickle_path:
             raise Exception('A pickle_path needs to be provided')
         self.client_path = client_path
         self.scope = scope
         self.pickle_path = pickle_path
         self.webserver = WebServer()
+        # Defines the type of oauth2.0 flow that we will use:
         self.flow = client.flow_from_clientsecrets(self.client_path, scope = self.scope, redirect_uri = self.webserver.redirect_uri)
+        # Makes a call that returns the url to request an authorization code:
         self.auth_uri = self.flow.step1_get_authorize_url()
         self.credentials = None
+        # This tests if a file exists at pickle_path, and if there is, it indicates that we have already got an access and refresh token - so we don't need to go through the initial authorization code flow:
         if os.path.exists(self.pickle_path):
             self.credentials = pickle.load( open(self.pickle_path, 'rb') ).credentials
             self.pickled = True

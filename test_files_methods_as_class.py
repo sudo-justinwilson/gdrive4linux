@@ -9,6 +9,7 @@ from apiclient import http
 class SyncService:
     """
     This class contains all the methods relating to files.
+    I have temporarily defined alot of runtime variables in the init just for cnvenience, but I have to remember to remove it after...
     """
     def __init__(self, client_secrets="/home/justin/Downloads/gdrive4linux_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json", gdrive_scope='https://www.googleapis.com/auth/drive', pickle_path=False):
         """
