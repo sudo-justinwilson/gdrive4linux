@@ -41,6 +41,69 @@ def print_files_in_folder(service, folder_id, print_metadata=False):
       print('An error occurred: %s' % error)
       break
 
+def print_file_metadata(service, file_id, whole_file=False):
+  """print a file's metadata.
+
+  Args:
+    service: Drive API service instance.
+    file_id: ID of the file to print metadata for.
+  """
+  try:
+    file = service.files().get(fileId=file_id).execute()
+
+    print('The name of the file is:\t %s' % file['title'])
+    print('MIME type:\t %s' % file['mimeType'])
+    print('The id of the files parents is:\t %s' % file['parents'])
+    #print('The MD5 is:\t %s' % file['md5Checksum'])
+    print('The MD5 is:\t %s' % file.get('md5Checksum'))
+    if whole_file:
+        #print('This is the whole file:')
+        #print(file)
+        print('Here is the dict items:')
+        for k in file:
+            print('FILE FROM METADATA:\t', k)
+        #print([attr for attr in file.items()])
+  except errors.HttpError as error:
+    print('An error occurred: %s' % error)
+
+def get_metadata_to_download_files(service, folder_id, print_metadata=False):
+  """
+  This method is to get the required metadata, so I can download all the files. What I gotta do now is create the structs so each file/dir can be a node in the tree.
+  """
+  page_token = None
+  while True:
+    try:
+      file = service.files().get(fileId=file_id).execute()
+      param = {}
+      if page_token:
+        param['pageToken'] = page_token
+      children = service.children().list(
+          folderId=folder_id, **param).execute()
+
+      for child in children.get('items', []):
+        print('START NEW FILE')
+        print('File Id: %s' % child['id'])
+        #print('The whole file is: ', child)
+        #print('Here is when I run a loop on child to print the keys:')
+        #for k in child:
+        #    print('CHILD VALUE:\t', k)
+        print('The name of the file is:\t %s' % file['title'])
+        print('MIME type:\t %s' % file['mimeType'])
+        print('The id of the files parents is:\t %s' % file['parents'])
+        #print('The MD5 is:\t %s' % file['md5Checksum'])
+        print('The MD5 is:\t %s' % file.get('md5Checksum'))
+        if print_metadata:
+            print('Here is when I call the print_file_metadata:')
+            #print_file_metadata(service, child['id'], whole_file=True)
+            print_file_metadata(service, child['id'], whole_file=False)
+            print('END NEW FILE')
+      page_token = children.get('nextPageToken')
+      if not page_token:
+        break
+    except errors.HttpError as error:
+      print('An error occurred: %s' % error)
+      break
+
 # ...
 
 def is_file_in_folder(service, folder_id, file_id):
@@ -66,31 +129,6 @@ def is_file_in_folder(service, folder_id, file_id):
 from apiclient import errors
 from apiclient import http
 # ...
-
-def print_file_metadata(service, file_id, whole_file=False):
-  """print a file's metadata.
-
-  Args:
-    service: Drive API service instance.
-    file_id: ID of the file to print metadata for.
-  """
-  try:
-    file = service.files().get(fileId=file_id).execute()
-
-    print('The name of the file is:\t %s' % file['title'])
-    print('MIME type:\t %s' % file['mimeType'])
-    print('The id of the files parents is:\t %s' % file['parents'])
-    #print('The MD5 is:\t %s' % file['md5Checksum'])
-    print('The MD5 is:\t %s' % file.get('md5Checksum'))
-    if whole_file:
-        #print('This is the whole file:')
-        #print(file)
-        print('Here is the dict items:')
-        for k in file:
-            print('FILE FROM METADATA:\t', k)
-        #print([attr for attr in file.items()])
-  except errors.HttpError as error:
-    print('An error occurred: %s' % error)
 
 
 def print_file_content(service, file_id):
