@@ -25,11 +25,13 @@ def print_files_in_folder(service, folder_id, print_metadata=False):
       for child in children.get('items', []):
         print('START NEW FILE')
         print('File Id: %s' % child['id'])
-        print('The whole file is: ', child)
+        #print('The whole file is: ', child)
+        #print('Here is when I run a loop on child to print the keys:')
+        #for k in child:
+        #    print('CHILD VALUE:\t', k)
         if print_metadata:
             print('Here is when I call the print_file_metadata:')
             #print_file_metadata(service, child['id'], whole_file=True)
-            # Setting the whole_file to False, removes the superfluous output:
             print_file_metadata(service, child['id'], whole_file=False)
             print('END NEW FILE')
       page_token = children.get('nextPageToken')
@@ -75,13 +77,18 @@ def print_file_metadata(service, file_id, whole_file=False):
   try:
     file = service.files().get(fileId=file_id).execute()
 
-    print('Title: %s' % file['title'])
-    print('MIME type: %s' % file['mimeType'])
+    print('The name of the file is:\t %s' % file['title'])
+    print('MIME type:\t %s' % file['mimeType'])
+    print('The id of the files parents is:\t %s' % file['parents'])
+    #print('The MD5 is:\t %s' % file['md5Checksum'])
+    print('The MD5 is:\t %s' % file.get('md5Checksum'))
     if whole_file:
-        print('This is the whole file:')
-        print(file)
+        #print('This is the whole file:')
+        #print(file)
         print('Here is the dict items:')
-        print([attr for attr in file.items()])
+        for k in file:
+            print('FILE FROM METADATA:\t', k)
+        #print([attr for attr in file.items()])
   except errors.HttpError as error:
     print('An error occurred: %s' % error)
 
