@@ -25,7 +25,9 @@ class SyncService:
         self.service = instance.create_service()
         about = self.service.about().get().execute()
         email = about['user']['emailAddress']
+        # I wanted to hardcode a trailing '/':
         self._GDRIVE_DIR = os.path.expanduser('~/' + email)
+        #self._GDRIVE_DIR = os.path.expanduser('~/' + email + '/')
         if not os.path.exists(self._GDRIVE_DIR):
             os.mkdir(self._GDRIVE_DIR)
 
@@ -103,40 +105,54 @@ class SyncService:
           print('An error occurred: %s' % error)
           break
 
-    def sync_from_gdrive_to_local(self):
+    def sync_from_gdrive_to_local(self, folder_id=None, current_dir_path=None):
         """
         This is an initial method I am going to use to sync remote gdrive directories to the local disk. 
         It might be rough at first, but we'll see how it goes...
         """
+        if not folder_id:
+            folder_id = 'root'
+        if not current_dir_path:
+            current_dir_path = self._GDRIVE_DIR
         page_token = None
         while True:
           try:
             #file = service.files().get(fileId=file_id).execute()
+            # The 'param' is where we can add params as keys for list method:
             param = {}
             if page_token:
               param['pageToken'] = page_token
+            # Add orderBy=folder,title param, so the results are ordered by directories first, then name:
             param['orderBy'] = 'folder,title'
+            print('Calling\t children().list(), etc:')
             children = self.service.children().list(
                 folderId=folder_id, **param).execute()
     
+            print('Entering for child loop:')
             for child in children.get('items', []):
-              print('START NEW FILE')
-              file = self.service.files().get(fileId=child['id']).execute()
+              #print('START NEW FILE')
+              print('In for child loop. Calling file_meta method:')
+              file_meta = self.service.files().get(fileId=child['id']).execute()
               print('File Id: %s' % child['id'])
-              #print('The whole file is: ', child)
-              #print('Here is when I run a loop on child to print the keys:')
-              #for k in child:
-              #    print('CHILD VALUE:\t', k)
-              print('The name of the file is:\t %s' % file['title'])
-              print('MIME type:\t %s' % file['mimeType'])
-              print('The id of the files parents is:\t %s' % file['parents'][0]['id'])
-              #print('The MD5 is:\t %s' % file['md5Checksum'])
-              print('The MD5 is:\t %s' % file.get('md5Checksum'))
-              if print_metadata:
-                  print('Here is when I call the print_file_metadata:')
-                  #print_file_metadata(service, child['id'], whole_file=True)
-                  print_file_metadata(self.service, child['id'], whole_file=False)
-                  print('END NEW FILE')
+              print('The name of the file is:\t %s' % file_meta['title'])
+              print('MIME type:\t %s' % file_meta['mimeType'])
+              print('The id of the files parents is:\t %s' % file_meta['parents'][0]['id'])
+              print('The MD5 is:\t %s' % file_meta.get('md5Checksum'))
+              ## START SYNC
+              # test if MIME type = drive folder:
+              local_path = current_dir_path + '/' + file_meta['title']
+              if file_meta['mimeType'] == 'application/vnd.google-apps.folder':
+                # if directory doesn't already exist:
+                if not os.path.exists(local_path):
+                  # create directory:
+                  print('MAKING DIRECTORY:\t', local_path)
+                  os.mkdir(local_path)
+                # Calling itself recursively:
+                print('Calling sync recursively:')
+                #new_dir_path = current_dir_path + '/' file_meta['title']
+                print('This is the new_dir_path:\t', local_path)
+                self.sync_from_gdrive_to_local(folder_id = file_meta['id'], current_dir_path = local_path)
+              ## END SYNC
             page_token = children.get('nextPageToken')
             if not page_token:
               break
@@ -252,8 +268,11 @@ if __name__ == '__main__':
     ##print("***NEW***: HERE'S WHEN CALL THE print_files_in_folder():")
     #syncservice.print_files_in_folder('root')
     #def get_metadata_to_download_files(self, folder_id, print_metadata=False):
-    syncservice.get_metadata_to_download_files('root')
-    client_secrets = "/home/justin/Downloads/gdrive4linux_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
+    #syncservice.get_metadata_to_download_files('0ByucBhUPxsJtQ29yRHo5SERrTzA')
+    print('before calling syncservice')
+    syncservice.sync_from_gdrive_to_local()
+    print('after calling syncservice')
+    #client_secrets = "/home/justin/Downloads/gdrive4linux_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
     #gdrive_scope = 'https://www.googleapis.com/auth/drive'
     #instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
     #instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='~/Dropbox/Coding/Projects/gdrive4linux/sudo.justin.wilson@gmail.com.pickled_credentials')
