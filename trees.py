@@ -10,6 +10,7 @@ class Tree:
         def element(self):
             """
             Return the element of this position.
+            This should return the custom object, which has the details of the file.
             """
             raise NotImplementedError('This is an ADT object. Concrete sub-class required!')
 

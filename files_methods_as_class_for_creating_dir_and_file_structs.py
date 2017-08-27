@@ -73,15 +73,17 @@ def get_metadata_to_download_files(service, folder_id, print_metadata=False):
   page_token = None
   while True:
     try:
-      file = service.files().get(fileId=file_id).execute()
+      #file = service.files().get(fileId=file_id).execute()
       param = {}
       if page_token:
         param['pageToken'] = page_token
+      param['orderBy'] = 'folder,title'
       children = service.children().list(
           folderId=folder_id, **param).execute()
 
       for child in children.get('items', []):
         print('START NEW FILE')
+        file = service.files().get(fileId=child['id']).execute()
         print('File Id: %s' % child['id'])
         #print('The whole file is: ', child)
         #print('Here is when I run a loop on child to print the keys:')
@@ -89,7 +91,7 @@ def get_metadata_to_download_files(service, folder_id, print_metadata=False):
         #    print('CHILD VALUE:\t', k)
         print('The name of the file is:\t %s' % file['title'])
         print('MIME type:\t %s' % file['mimeType'])
-        print('The id of the files parents is:\t %s' % file['parents'])
+        print('The id of the files parents is:\t %s' % file['parents'][0]['id'])
         #print('The MD5 is:\t %s' % file['md5Checksum'])
         print('The MD5 is:\t %s' % file.get('md5Checksum'))
         if print_metadata:
@@ -203,7 +205,10 @@ if __name__ == '__main__':
     #client_secrets = "/home/justin/Downloads/gdrive4linux-client_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
     client_secrets = "/home/justin/Downloads/gdrive4linux_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
     gdrive_scope = 'https://www.googleapis.com/auth/drive'
-    instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
+    # This instance was when I used the cik.smarthomes@gmail.com account:
+    #instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
+    # This account will be the sudo.justin.wilson@gmail.com pickled credentials:
+    instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/Dropbox/Coding/Projects/gdrive4linux/sudo.justin.wilson@gmail.com.pickled_credentials')
     service = instance.create_service()
     ##
     ## This is to introspect the actual object:
@@ -226,7 +231,8 @@ if __name__ == '__main__':
     #fid = '0B2Vt6e4DFEDGQ1RaZlJYRzZXeWs'
     ##
     # Use following methods to print the files in a gdrive dir:
-    print_files_in_folder(service, fid, print_metadata=True)
+    #print_files_in_folder(service, fid, print_metadata=True)
+    get_metadata_to_download_files(service, 'root', print_metadata=False)
     #print_files_in_folder(service, fid)
     ##
     # This was my attempt to download a file, but as yet, it has been unsuccessful:
