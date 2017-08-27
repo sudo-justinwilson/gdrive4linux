@@ -19,9 +19,7 @@ class SyncService:
             client_secrets, gdrive_scope and pickle_path are required to create a google drive service object.
         """
         if not pickle_path:
-            # These pickled creds seem to be for j.w.winship@gmail.com:
-            #pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21'
-            # I know that these creds are for sudo.justin.wilson@gmail.com:
+            # These pickled creds are for cik.smarthomes@gmail.com:
             pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21'
         instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path=pickle_path)
         self.service = instance.create_service()
@@ -30,7 +28,6 @@ class SyncService:
         self._GDRIVE_DIR = os.path.expanduser('~/' + email)
         if not os.path.exists(self._GDRIVE_DIR):
             os.mkdir(self._GDRIVE_DIR)
-        print('made it HERE!')
 
     
 # FILE METHODS:
@@ -105,6 +102,47 @@ class SyncService:
         except errors.HttpError as error:
           print('An error occurred: %s' % error)
           break
+
+    def sync_from_gdrive_to_local(self):
+        """
+        This is an initial method I am going to use to sync remote gdrive directories to the local disk. 
+        It might be rough at first, but we'll see how it goes...
+        """
+        page_token = None
+        while True:
+          try:
+            #file = service.files().get(fileId=file_id).execute()
+            param = {}
+            if page_token:
+              param['pageToken'] = page_token
+            param['orderBy'] = 'folder,title'
+            children = self.service.children().list(
+                folderId=folder_id, **param).execute()
+    
+            for child in children.get('items', []):
+              print('START NEW FILE')
+              file = self.service.files().get(fileId=child['id']).execute()
+              print('File Id: %s' % child['id'])
+              #print('The whole file is: ', child)
+              #print('Here is when I run a loop on child to print the keys:')
+              #for k in child:
+              #    print('CHILD VALUE:\t', k)
+              print('The name of the file is:\t %s' % file['title'])
+              print('MIME type:\t %s' % file['mimeType'])
+              print('The id of the files parents is:\t %s' % file['parents'][0]['id'])
+              #print('The MD5 is:\t %s' % file['md5Checksum'])
+              print('The MD5 is:\t %s' % file.get('md5Checksum'))
+              if print_metadata:
+                  print('Here is when I call the print_file_metadata:')
+                  #print_file_metadata(service, child['id'], whole_file=True)
+                  print_file_metadata(self.service, child['id'], whole_file=False)
+                  print('END NEW FILE')
+            page_token = children.get('nextPageToken')
+            if not page_token:
+              break
+          except errors.HttpError as error:
+            print('An error occurred: %s' % error)
+            break
     
     # ...
     
@@ -203,16 +241,16 @@ if __name__ == '__main__':
     # STANDARD LOGISTICS:
     #client_secrets = "/home/justin/Downloads/gdrive4linux-client_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
     syncservice = SyncService()
-    print("Here is when I inspect a SyncService() object: ")
-    print(dir(syncservice))
-    print(type(syncservice))
-    # Now I'm trying to print the methods of a SyncService.service object:
-    service = syncservice.service
-    print("This is the actual service object: ")
-    print(type(service))
-    print(dir(service))
-    print("***NEW***: HERE'S WHEN CALL THE print_files_in_folder():")
-    syncservice.print_files_in_folder('root')
+    #print("Here is when I inspect a SyncService() object: ")
+    #print(dir(syncservice))
+    #print(type(syncservice))
+    ## Now I'm trying to print the methods of a SyncService.service object:
+    #service = syncservice.service
+    #print("This is the actual service object: ")
+    #print(type(service))
+    #print(dir(service))
+    ##print("***NEW***: HERE'S WHEN CALL THE print_files_in_folder():")
+    #syncservice.print_files_in_folder('root')
     #def get_metadata_to_download_files(self, folder_id, print_metadata=False):
     syncservice.get_metadata_to_download_files('root')
     client_secrets = "/home/justin/Downloads/gdrive4linux_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
