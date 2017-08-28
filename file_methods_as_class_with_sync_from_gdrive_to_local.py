@@ -152,6 +152,13 @@ class SyncService:
                 #new_dir_path = current_dir_path + '/' file_meta['title']
                 print('This is the new_dir_path:\t', local_path)
                 self.sync_from_gdrive_to_local(folder_id = file_meta['id'], current_dir_path = local_path)
+              # test if the file type is a pdf:
+              if file_meta['mimeType'] == 'application/pdf': 
+                #filename = local_path + '.' + 'pdf'
+                print('This is the filename:\t', local_path)
+                with open(local_path, 'wb') as f:
+                  self.download_file(file_meta['id'], f)
+              #download_file(self, file_id, local_fd):
               ## END SYNC
             page_token = children.get('nextPageToken')
             if not page_token:
