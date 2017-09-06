@@ -261,92 +261,13 @@ class SyncService:
 
 
 if __name__ == '__main__':
-    # STANDARD LOGISTICS:
-    #client_secrets = "/home/justin/Downloads/gdrive4linux-client_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
     syncservice = SyncService()
-    #print("Here is when I inspect a SyncService() object: ")
-    #print(dir(syncservice))
-    #print(type(syncservice))
-    ## Now I'm trying to print the methods of a SyncService.service object:
-    #service = syncservice.service
-    #print("This is the actual service object: ")
-    #print(type(service))
-    #print(dir(service))
-    ##print("***NEW***: HERE'S WHEN CALL THE print_files_in_folder():")
-    #syncservice.print_files_in_folder('root')
-    #def get_metadata_to_download_files(self, folder_id, print_metadata=False):
-    #syncservice.get_metadata_to_download_files('0ByucBhUPxsJtQ29yRHo5SERrTzA')
     print('before calling syncservice')
     syncservice.sync_from_gdrive_to_local()
     print('after calling syncservice')
-    #client_secrets = "/home/justin/Downloads/gdrive4linux_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
-    #gdrive_scope = 'https://www.googleapis.com/auth/drive'
-    #instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
-    #instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='~/Dropbox/Coding/Projects/gdrive4linux/sudo.justin.wilson@gmail.com.pickled_credentials')
-    #syncservice.instance = auth_with_apiclient(pickle_path='~/Dropbox/Coding/Projects/gdrive4linux/sudo.justin.wilson@gmail.com.pickled_credentials')
-    #service = instance.create_service()
-    ##
-    ## This is to introspect the actual object:
-    #print('Here is the object introspection:')
-    #print(dir(service))
-    #print('heres when I call the about method:')
-    #about_instance = get_about_object(service)
-    #print(about_instance)
-    #email = email_address(about_instance)
-    #print('Here is the email address:\t', email)
-    ## Here is when I append the email onto the home dir:
-    #homedir = os.path.expanduser('~/' + email + '/')
-    #print('This should be the ~/gdrive dir:\t', homedir)
-    ##
-    # 'root' is alias for root dir
-    #fid = 'root'
-    # Here is the file id for "INSTALL.Docker.rst":
-    #fid = '0B2Vt6e4DFEDGT1EtdXZrZUJ3N1U'
-    # Here is the file id for a pdf file:
-    #fid = '0B2Vt6e4DFEDGQ1RaZlJYRzZXeWs'
-    #Here is the 'id' for the "Books" directory, in root:
     Books_id = '0B2Vt6e4DFEDGMTBqOGhpa2FjMFE'
     # Here is the file id for "new-books", which is a sub-directory of "Books" (which is a sub-directory of 'root'):
     # NOTE: I couldn't use "new-books" as a variable name, because it contains a "-" (which is an operator).. don't think I can avoid that...
     new_books_id = '0B2Vt6e4DFEDGemVrX2VjdFI1TVk'
     # Here is the file id for the "Pre-Calibre books" directory:
     precalibre_books_id = '0B2Vt6e4DFEDGWTNpM0xnVUtDVmc'
-    ##
-    # Use following methods to print the files in a gdrive dir:
-    #print_files_in_folder(service, 'root', print_metadata=True)
-    #syncservice.print_files_in_folder(precalibre_books_id, print_metadata=True)
-    #syncservice.print_files_in_folder(precalibre_books_id)
-    #syncservice.print_files_in_folder(Books_id)
-    #print_files_in_folder(service, fid)
-    ##
-    # This was my attempt to download a file, but as yet, it has been unsuccessful:
-    # I think this is the ATOM RFC text file?? Actually, I tried calling the download_file() method on it, and it said that the file id doesn't exist??:
-    #fid = '0B6ujjnScaN51cTFUWW9vUmEyQ1k'
-    ##
-    # 2017-07-19: I confirmed that the "download_file()" method worked with the fid for INSTALL.Docker.rst and a pdf file (in ~/tmp):
-    #local_path = '/home/justin/tmp/gdrive4linux_test_download_file-today'
-    #with open(local_path, 'wb') as f:
-    #    download_file(service, fid, f)
-    ##
-    # HERE'S WHEN I CALL THE print_file_metadata() method:
-    #print_file_metadata(service, file_id, whole_file=False):
-    ##print('this is when I called print_file_metadata with whole_file=True')
-    ##print_file_metadata(service, file_id, whole_file=True)
-    ##
-    # 2017-07-19: I was able to print the contents of the "INSTALL.Docker.rst" file, with the following method:
-    #print_file_content(service, fid)
-    ##
-    # Here's how to search ofr a JPEG file, and print the title and file_id:
-    #page_token = None
-    #while True:
-    #    #response = service.files().list(q="mimeType='image/jpeg'",
-    #    response = service.files().list(q="mimeType != 'application/vnd.google-apps.folder'",
-    #                                         spaces='drive',
-    #                                         fields='nextPageToken, items(id, title)',
-    #                                         pageToken=page_token).execute()
-    #    for file in response.get('items', []):
-    #        # Process change
-    #        print('Found file: %s (%s)' % (file.get('title'), file.get('id')))
-    #    page_token = response.get('nextPageToken', None)
-    #    if page_token is None:
-    #        break;
