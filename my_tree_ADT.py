@@ -23,7 +23,13 @@ class Tree_ADT:
     #    self.size = 1
     #    self.root.children = dict()
 
-    def add_child_node(self):
+    def add_node(self):
+        """
+        Add a child node to parent.
+        """
+        raise NotImplementedError('Needs to be implemented by subclass')
+
+    def delete_node(self):
         """
         Add a child node to parent.
         """
@@ -43,9 +49,15 @@ class Tree_ADT:
 
     def is_leaf(self, n):
         """
-        Return True if n is root node.
+        Return True if n is leaf node.
         """
         return n.children is None
+
+    def nodes(self, parent=root):
+        """
+        Iterate through the children nodes.
+        """
+        raise NotImplementedError('Needs to be implemented by subclass')
 
     def __len__(self, node=self.root):
         raise NotImplementedError('Needs to be implemented by subclass')

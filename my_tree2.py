@@ -1,4 +1,6 @@
-class Tree:
+from my_tree_ADT import Tree_ADT
+
+class Tree(Tree_ADT):
     """
     Tree to store google drive file metadata.
     """
@@ -15,51 +17,58 @@ class Tree:
             self.parent = parent
             self.element = element
             self.children = None
-    
     ##  End nested Node class       ##
-    ##  Begin nested file class     ##
-    class File:
-        """
-        This is a data structure where I can store the metadata of a file.
-        """
-        __slots__ == 'file_id', 'title', 'mime_type', 'md5', 'parent'
-        def __init__(self, file_id, title, mime_type, parent, md5 = None):
-            """
-            Initialize a File object with provided metadata.
-            """
-            self.file_id = file_id
-            self.title = title
-            self.mime_type = mime_type
-            self.parent = parent
-            self.md5 = md5
 
-    def __init__(self, root):
+    def __init__(self, element):
         """
         Initialize an empty tree structure.
-        """
-        self.root = self.Node(self.File(*args))
-        self.root.children = dict()
-        #self.size = 1
 
-    def add_child_node(self, element, parent):
+        Args:
+            element:    This is the element that the root node will point to.
+        """
+        #self.root = self.Node(self.File(*args))
+        self.root = self.Node(element, None)
+        self.root.children = dict()
+        self.size = 1
+
+    def add_node(self, element, parent):
         """
         Add a child node to the parent.
         'element' and 'parent' must be of the type self.File.
         """
-        if not isinstance(element, (self.File)):
-            raise TypeError('The first arg (element) must be of the type self.File')
+        if not isinstance(parent, (self.Node)):
+            raise TypeError('The second arg (parent) must be of the type self.Node')
+        # Set parent.children to an empty dict:
+        parent.children = {}
+        # Add a member to parent.children:
         parent.children[element.file_id] = element
 
-    def nodes(self, parent=self.root):
+    def delete_node(self, child, parent):
         """
-        Return the children's elements.
+        Delete child node from parent, and return deleted node.
+        """
+        if not isinstance(parent, (self.Node)):
+            raise TypeError('The second arg (parent) must be of the type self.Node')
+        if node not in parent.children.keys():
+            raise NameError(node + ' is not a child of of the parent')
+        return parent.children.pop(child)
+
+    def nodes(self, parent):
+        """
+        Iterate through the children nodes of a parent.
         """
         for child in parent.children:
-            yield parent[child]
-
-    def elements(self, parent):
+            yield parent
+        
         for node in parent.nodes:
             yield node.element
+
+    def __iter__(self, parent):
+        """
+        Iterate through the elements of a parent.
+        """
+        for child in parent.children:
+            yield parent.children[child].element
 
     def add_node_from_path(self, path):
         """
