@@ -35,31 +35,31 @@ class Tree_ADT:
         """
         raise NotImplementedError('Needs to be implemented by subclass')
 
-    def parent(self, node):
-        """
-        Return parent of node.
-        """
-        raise NotImplementedError('Needs to be implemented by subclass')
+    #def parent(self, node):
+    #    """
+    #    Return parent of node.
+    #    """
+    #    raise NotImplementedError('Needs to be implemented by subclass')
 
-    def is_root(self, n):
-        """
-        Return True if n is root node.
-        """
-        return self.root() == n
+    #def is_root(self, n):
+    #    """
+    #    Return True if n is root node.
+    #    """
+    #    return self.root is n
 
-    def is_leaf(self, n):
-        """
-        Return True if n is leaf node.
-        """
-        return n.children is None
+    #def is_leaf(self, n):
+    #    """
+    #    Return True if n is leaf node.
+    #    """
+    #    return n.children is None
 
-    def nodes(self, parent=root):
-        """
-        Iterate through the children nodes.
-        """
-        raise NotImplementedError('Needs to be implemented by subclass')
+    #def nodes(self):
+    #    """
+    #    Iterate through the children nodes.
+    #    """
+    #    raise NotImplementedError('Needs to be implemented by subclass')
 
-    def __len__(self, node=self.root):
+    def __len__(self):
         raise NotImplementedError('Needs to be implemented by subclass')
 
     def __iter__(self):

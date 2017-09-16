@@ -10,7 +10,7 @@ class Tree(Tree_ADT):
         """
         __slots__ = 'parent', 'children', 'element'
     
-        def __init__(self, element, parent=None):
+        def __init__(self, element, parent):
             """
             Initialize a simple Node instance
             """
@@ -26,9 +26,7 @@ class Tree(Tree_ADT):
         Args:
             element:    This is the element that the root node will point to.
         """
-        #self.root = self.Node(self.File(*args))
         self.root = self.Node(element, None)
-        self.root.children = dict()
         self.size = 1
 
     def add_node(self, element, parent):
@@ -39,9 +37,12 @@ class Tree(Tree_ADT):
         if not isinstance(parent, (self.Node)):
             raise TypeError('The second arg (parent) must be of the type self.Node')
         # Set parent.children to an empty dict:
-        parent.children = {}
+        if parent.children is None:
+            parent.children = {}
         # Add a member to parent.children:
-        parent.children[element.file_id] = element
+        #parent.children[element.file_id] = element
+        parent.children[element.file_id] = self.Node(element, parent)
+        self.size += 1
 
     def delete_node(self, child, parent):
         """
@@ -49,41 +50,79 @@ class Tree(Tree_ADT):
         """
         if not isinstance(parent, (self.Node)):
             raise TypeError('The second arg (parent) must be of the type self.Node')
-        if node not in parent.children.keys():
-            raise NameError(node + ' is not a child of of the parent')
+        #if child not in parent.children.keys():
+        #    raise NameError(child, ' is not a child of of the parent')
+        if child not in parent.children:
+            raise NameError(child, ' is not a child of of the parent')
+        self.size -= 1
         return parent.children.pop(child)
+
+    def __len__(self):
+        """
+        Return the number of nodes in the tree.
+        """
+        return self.size
 
     def nodes(self, parent):
         """
         Iterate through the children nodes of a parent.
         """
         for child in parent.children:
-            yield parent
-        
-        for node in parent.nodes:
-            yield node.element
+            yield parent.children[child]
 
-    def __iter__(self, parent):
-        """
-        Iterate through the elements of a parent.
-        """
-        for child in parent.children:
-            yield parent.children[child].element
+    #def add_node_from_path(self, path):
+    #    """
+    #    Add node from path.
+    #    'path' must be a string and the path must be relative from the google drive root directory
+    #    """
+    #    PATH = path.split('/')
+    #    current_parent_node = PATH.pop(0)
+    #    length = len(PATH)
+    #    if not current_parent_node == self.root:
+    #        raise Exception('The path is not relative from google drive root directory.')
+    #    ##
+    #    while length(PATH) > 1:
+    #        if PATH[0] not in { v.element.title for v in current_parent_node.children.values() }:
+    #            raise Exception('Could not find ' + PATH[0] + ' in ' + current_parent_node.element.path)
+    #        current_parent_node = current_parent_node.children[PATH.pop(0)]
+    #        if not isinstance(current_parent_node, (self.Node)):
+    #            raise TypeError('The add_node_from_path() method did not return a Node instance.')
 
-    def add_node_from_path(self, path):
-        """
-        Add node from path.
-        'path' must be a string and the path must be relative from the google drive root directory
-        """
-        PATH = path.split('/')
-        current_parent_node = PATH.pop(0)
-        length = len(PATH)
-        if not current_parent_node == self.root:
-            raise Exception('The path is not relative from google drive root directory.')
-        ##
-        while length(PATH) > 1:
-            if PATH[0] not in { v.element.title for v in current_parent_node.children.values() }:
-                raise Exception('Could not find ' + PATH[0] + ' in ' + current_parent_node.element.path)
-            current_parent_node = current_parent_node.children[PATH.pop(0)]
-            if not isinstance(current_parent_node, (self.Node)):
-                raise TypeError('The add_node_from_path() method did not return a Node instance.')
+if __name__ == '__main__':
+    class File:
+        __slots__ = 'name', 'file_id', 'type'
+        def __init__(self, name, file_id, type):
+            self.name = name
+            self.file_id = file_id
+            self.type = type
+    tree = Tree(File('j.w.winship@gmail.com', '454f34t4', 'directory'))
+    print('tree introspection: ', dir(tree))
+    print('the size of the tree is: ', tree.size)
+    tree.add_node(File('file1', '3rfd234r', 'directory'), tree.root)
+    tree.add_node(File('file2', 'g43t4rf', 'pdf'), tree.root)
+    tree.add_node(File('file3', 'g4t43trfg4', 'docs'), tree.root)
+    tree.add_node(File('file4', '4er9ij4kr', 'sheet'), tree.root)
+    print('the size of the tree is: ', tree.size)
+    print('this is the root nodes element name attr: ', tree.root.element.name)
+    print('deleting tree.root.children[' + '4er9ij4kr' + ']')
+    print(tree.delete_node('4er9ij4kr', tree.root).element.name)
+    print(tree.delete_node('3rfd234r', tree.root).element.name)
+    print(tree.delete_node('g43t4rf', tree.root).element.name)
+    print(tree.delete_node('g4t43trfg4', tree.root).element.name)
+    print('testing to see what happens when we delete a non-existent node:')
+    try:
+        print(tree.delete_node('4er9ij4kr', tree.root).element.name)
+    except NameError as e:
+        print("You tried to delete a non-existent node!", e)
+    print("the size of the tree is: ", tree.size)
+    tree.add_node(File("file1", "3rfd234r", "directory"), tree.root)
+    tree.add_node(File("file2", "g43t4rf", "pdf"), tree.root)
+    tree.add_node(File("file3", "g4t43trfg4", "docs"), tree.root)
+    tree.add_node(File("file4", "4er9ij4kr", "sheet"), tree.root)
+    print("the size of the tree is: ", tree.size)
+    print()
+    print("Testing the tree.nodes() method:")
+    for node in tree.nodes(tree.root):
+        print("The type of this element is:\t", type(node))
+        print("Here are the members of this node:\t", dir(node))
+        print("Here is the element of the current node:\t", node.element.name)
