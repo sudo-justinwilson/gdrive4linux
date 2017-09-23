@@ -65,7 +65,7 @@ class SyncService:
           print('An error occurred: %s' % error)
           break
 
-    def get_metadata_to_download_files(self, folder_id, print_metadata=False):
+    def get_metadata_to_download_files(self, folder_id, print_metadata=False, return_dict=False):
       """
       This method is to get the required metadata, so I can download all the files. What I gotta do now is create the structs so each file/dir can be a node in the tree.
       """
@@ -81,23 +81,26 @@ class SyncService:
               folderId=folder_id, **param).execute()
     
           for child in children.get('items', []):
-            print('START NEW FILE')
+            #print('START NEW FILE')
             file = self.service.files().get(fileId=child['id']).execute()
-            print('File Id: %s' % child['id'])
-            #print('The whole file is: ', child)
-            #print('Here is when I run a loop on child to print the keys:')
-            #for k in child:
-            #    print('CHILD VALUE:\t', k)
-            print('The name of the file is:\t %s' % file['title'])
-            print('MIME type:\t %s' % file['mimeType'])
-            print('The id of the files parents is:\t %s' % file['parents'][0]['id'])
-            #print('The MD5 is:\t %s' % file['md5Checksum'])
-            print('The MD5 is:\t %s' % file.get('md5Checksum'))
-            if print_metadata:
-                print('Here is when I call the print_file_metadata:')
-                #print_file_metadata(service, child['id'], whole_file=True)
-                print_file_metadata(self.service, child['id'], whole_file=False)
-                print('END NEW FILE')
+            if return_dict:
+                yield file 
+            else:
+                print('File Id: %s' % child['id'])
+                #print('The whole file is: ', child)
+                #print('Here is when I run a loop on child to print the keys:')
+                #for k in child:
+                #    print('CHILD VALUE:\t', k)
+                print('The name of the file is:\t %s' % file['title'])
+                print('MIME type:\t %s' % file['mimeType'])
+                print('The id of the files parents is:\t %s' % file['parents'][0]['id'])
+                #print('The MD5 is:\t %s' % file['md5Checksum'])
+                print('The MD5 is:\t %s' % file.get('md5Checksum'))
+                if print_metadata:
+                    print('Here is when I call the print_file_metadata:')
+                    #print_file_metadata(service, child['id'], whole_file=True)
+                    print_file_metadata(self.service, child['id'], whole_file=False)
+                    print('END NEW FILE')
           page_token = children.get('nextPageToken')
           if not page_token:
             break
@@ -262,12 +265,25 @@ class SyncService:
 
 if __name__ == '__main__':
     syncservice = SyncService()
-    print('before calling syncservice')
-    syncservice.sync_from_gdrive_to_local()
-    print('after calling syncservice')
-    Books_id = '0B2Vt6e4DFEDGMTBqOGhpa2FjMFE'
-    # Here is the file id for "new-books", which is a sub-directory of "Books" (which is a sub-directory of 'root'):
-    # NOTE: I couldn't use "new-books" as a variable name, because it contains a "-" (which is an operator).. don't think I can avoid that...
-    new_books_id = '0B2Vt6e4DFEDGemVrX2VjdFI1TVk'
-    # Here is the file id for the "Pre-Calibre books" directory:
-    precalibre_books_id = '0B2Vt6e4DFEDGWTNpM0xnVUtDVmc'
+    #print('before calling syncservice')
+    #syncservice.sync_from_gdrive_to_local()
+    #print('after calling syncservice')
+    #Books_id = '0B2Vt6e4DFEDGMTBqOGhpa2FjMFE'
+    ## Here is the file id for "new-books", which is a sub-directory of "Books" (which is a sub-directory of 'root'):
+    ## NOTE: I couldn't use "new-books" as a variable name, because it contains a "-" (which is an operator).. don't think I can avoid that...
+    #new_books_id = '0B2Vt6e4DFEDGemVrX2VjdFI1TVk'
+    ## Here is the file id for the "Pre-Calibre books" directory:
+    #precalibre_books_id = '0B2Vt6e4DFEDGWTNpM0xnVUtDVmc'
+
+
+    #def get_metadata_to_download_files(self, folder_id, print_metadata=False, return_dict=False):
+    path = '/home/justin/Dropbox/Coding/Projects/gdrive4linux/'
+    cik_smarthomes = {}
+    for f in syncservice.get_metadata_to_download_files('root', return_dict=True):
+        #print("Here's when I call f['id']:\t", f['id'])
+        #print('Here are the items in the dict:\t', f.items())
+        cik_smarthomes[f['id']] = f
+    filename = 'cik.smarthomes@gmail.com_list-files_in_root.json'
+    import json
+    #print("here is the total dict:\n", json.dumps(cik_smarthomes, indent=4))
+    json.dump(cik_smarthomes, open(path + filename, 'w'), indent=4)
