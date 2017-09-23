@@ -11,12 +11,19 @@ class auth_with_apiclient:
     My implementation of using the google-api-client module to create an authorized service object, which can make oauth2.0 authorized Google API calls.
     ** It *should* return an google OAuth2Credentials object.   **
 
+    TODO:
+        - Refactor so this program can accept command-line arguments
+    """
+
+    def __init__(self, client_path=None, scope=None, pickle_path=None):
+        """
+        Create an auth_with_apiclient instance.
+
         Args:
         - client_path:      This is the path to the app credentials from the Google developer's console.
         - scope:            This specifies the amount of access (or permissions) requested from Google.
         - pickle_path:      Specifies the path where the access and refresh tokens are stored as a pickled file.
-    """
-    def __init__(self, client_path=None, scope=None, pickle_path=None):
+        """
         if not client_path:
             raise Exception('A path to a json file containing the client_id and client_secret needs to be provided')
         # Mandatory arg:
@@ -31,7 +38,7 @@ class auth_with_apiclient:
         self.webserver = WebServer()
         # Defines the type of oauth2.0 flow that we will use:
         self.flow = client.flow_from_clientsecrets(self.client_path, scope = self.scope, redirect_uri = self.webserver.redirect_uri)
-        # Makes a call that returns the url to request an authorization code:
+        # Returns the url to request an authorization code:
         self.auth_uri = self.flow.step1_get_authorize_url()
         self.credentials = None
         # This tests if a file exists at pickle_path, and if there is, it indicates that we have already got an access and refresh token - so we don't need to go through the initial authorization code flow:
@@ -41,21 +48,24 @@ class auth_with_apiclient:
         else:
             self.pickled = False
 
-    def create_service(self, auth_code=None, url=None, http_auth=None):
+    def create_service(self, auth_code=None, url=None, http_auth=None, version='v2'):
         """
         Method that returns authenticated service object.
+
+        TODO:
+            I need to include an optional arg: version=v2 - so we can optionally return a v3 instance.
         """
         if self.pickled is False:
             if not url:
                 url = self.auth_uri
-            if not auth_code:
+            if not auth_code: 
                 auth_code = self.get_auth_code(url)
             self.credentials = self.flow.step2_exchange(auth_code)
             self.pickled = True
             pickle.dump( self, open(self.pickle_path, 'wb') )
         if not http_auth:
             http_auth = self.credentials.authorize(httplib2.Http())
-        drive_service = build('drive', 'v2', http=http_auth)
+        drive_service = build('drive', version, http=http_auth)
         return drive_service
 
     def get_auth_code(self, url):

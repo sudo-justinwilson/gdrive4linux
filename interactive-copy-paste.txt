@@ -1,8 +1,0 @@
-# This text file is so I can copy and paste the text into an interactive python session, and so you can get an authorized gdrive service object up and running:
-
-from apiclient import errors
-from pickled_service2_without_pickle_state_methods import auth_with_apiclient
-client_secrets = "/home/justin/Downloads/gdrive4linux_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
-gdrive_scope = 'https://www.googleapis.com/auth/drive'
-instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
-service = instance.create_service()
