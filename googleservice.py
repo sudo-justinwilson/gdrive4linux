@@ -78,10 +78,14 @@ class auth_with_apiclient:
 
 if __name__ == '__main__':
     #instance = auth_with_apiclient(client_path='/home/justin/tmp/auth_with_apiclient_object', scope='https://www.googleapis.com/auth/drive', pickle_path='/home/justin/tmp/token_from_my_service_object')
-    client_secrets = "/home/justin/Downloads/gdrive4linux-client_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
+    # The client_secrets file seems to have disappeared:
+    #client_secrets = "/home/justin/Downloads/gdrive4linux-client_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
+    client_secrets = "/home/justin/Downloads/gdrive4linux_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json"
     print('Here is what the client_secrets is:\t', client_secrets)
     gdrive_scope = 'https://www.googleapis.com/auth/drive'
-    instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
+    # I had to go through the initial oauth2.0 flow again, because the pickled object expects a module named 'pickled_service2_without_pickle_state_methods' - which I renamed to googleservice.py:
+    #instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21')
+    instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path='/home/justin/Dropbox/Coding/Projects/gdrive4linux/cik.smarthomes.pickled_credentials_20170929')
     print('the pickle flag before calling create_service is set to: ', instance.pickled)
     service = instance.create_service()
     print('the pickle flag after create_service, is set to: ', instance.pickled)

@@ -1,6 +1,7 @@
 import os
 from apiclient import errors
-from pickled_service2_without_pickle_state_methods import auth_with_apiclient
+#from pickled_service2_without_pickle_state_methods import auth_with_apiclient
+from googleservice import auth_with_apiclient
 from apiclient import http
 # ...
 
@@ -20,7 +21,7 @@ class SyncService:
         """
         if not pickle_path:
             # These pickled creds are for cik.smarthomes@gmail.com:
-            pickle_path='/home/justin/tmp/token_from_auth_with_object-2017-05-21'
+            pickle_path='/home/justin/Dropbox/Coding/Projects/gdrive4linux/cik.smarthomes.pickled_credentials_20170929'
         instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path=pickle_path)
         self.service = instance.create_service()
         about = self.service.about().get().execute()
@@ -277,13 +278,15 @@ if __name__ == '__main__':
 
 
     #def get_metadata_to_download_files(self, folder_id, print_metadata=False, return_dict=False):
-    path = '/home/justin/Dropbox/Coding/Projects/gdrive4linux/'
-    cik_smarthomes = {}
-    for f in syncservice.get_metadata_to_download_files('root', return_dict=True):
-        #print("Here's when I call f['id']:\t", f['id'])
-        #print('Here are the items in the dict:\t', f.items())
-        cik_smarthomes[f['id']] = f
-    filename = 'cik.smarthomes@gmail.com_list-files_in_root.json'
-    import json
-    #print("here is the total dict:\n", json.dumps(cik_smarthomes, indent=4))
-    json.dump(cik_smarthomes, open(path + filename, 'w'), indent=4)
+    #path = '/home/justin/Dropbox/Coding/Projects/gdrive4linux/'
+    #cik_smarthomes = {}
+    #for f in syncservice.get_metadata_to_download_files('root', return_dict=True):
+    #    #print("Here's when I call f['id']:\t", f['id'])
+    #    #print('Here are the items in the dict:\t', f.items())
+    #    cik_smarthomes[f['id']] = f
+    #filename = 'cik.smarthomes@gmail.com_list-files_in_root.json'
+    #import json
+    ##print("here is the total dict:\n", json.dumps(cik_smarthomes, indent=4))
+    #json.dump(cik_smarthomes, open(path + filename, 'w'), indent=4)
+    ##def print_file_metadata(self, file_id, whole_file=False):
+    syncservice.print_file_metadata('root', whole_file=True)
