@@ -192,7 +192,7 @@ class SyncService:
           raise error
       return True
     
-    def print_file_metadata(self, file_id, whole_file=False):
+    def print_file_metadata(self, file_id, whole_file=False,return_dict=False):
       """print a file's metadata.
     
       Args:
@@ -200,6 +200,8 @@ class SyncService:
       """
       try:
         file = self.service.files().get(fileId=file_id).execute()
+        if return_dict:
+            return file
     
         print('Title: %s' % file['title'])
         print('MIME type: %s' % file['mimeType'])
@@ -289,4 +291,7 @@ if __name__ == '__main__':
     ##print("here is the total dict:\n", json.dumps(cik_smarthomes, indent=4))
     #json.dump(cik_smarthomes, open(path + filename, 'w'), indent=4)
     ##def print_file_metadata(self, file_id, whole_file=False):
-    syncservice.print_file_metadata('root', whole_file=True)
+    import json
+    d = syncservice.print_file_metadata('root', whole_file=True, return_dict=True)
+    print("here is the returned dict:", d)
+    print(json.dumps(d, indent=4))
