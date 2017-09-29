@@ -25,12 +25,10 @@ class SyncService:
         instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path=pickle_path)
         self.service = instance.create_service()
         about = self.service.about().get().execute()
-        email = about['user']['emailAddress']
-        # I wanted to hardcode a trailing '/':
-        self._GDRIVE_DIR = os.path.expanduser('~/' + email)
-        #self._GDRIVE_DIR = os.path.expanduser('~/' + email + '/')
-        if not os.path.exists(self._GDRIVE_DIR):
-            os.mkdir(self._GDRIVE_DIR)
+        self.email = about['user']['emailAddress']
+        self._ROOT_DIR = os.path.expanduser('~/' + self.email)
+        if not os.path.exists(self._ROOT_DIR):
+            os.mkdir(self._ROOT_DIR)
 
     
 # FILE METHODS:
@@ -117,7 +115,7 @@ class SyncService:
         if not folder_id:
             folder_id = 'root'
         if not current_dir_path:
-            current_dir_path = self._GDRIVE_DIR
+            current_dir_path = self._ROOT_DIR
         page_token = None
         while True:
           try:
@@ -134,7 +132,6 @@ class SyncService:
     
             print('Entering for child loop:')
             for child in children.get('items', []):
-              #print('START NEW FILE')
               print('In for child loop. Calling file_meta method:')
               file_meta = self.service.files().get(fileId=child['id']).execute()
               print('File Id: %s' % child['id'])
@@ -252,19 +249,6 @@ class SyncService:
           print('Download Complete')
           return
 
-# ABOUT METHODS:
-    #def get_about_object(self):
-    #    """
-    #    Returns an "about" object (dict), that can query user info, email, etc..
-    #
-    #    Args:
-    #    """
-    #    try:
-    #        about = self.service.about().get().execute()
-    #        return about
-    #    except errors.HttpError as error:
-    #        print('An error has occured: %s' % error)
-
 
 if __name__ == '__main__':
     syncservice = SyncService()
@@ -295,3 +279,4 @@ if __name__ == '__main__':
     d = syncservice.print_file_metadata('root', whole_file=True, return_dict=True)
     print("here is the returned dict:", d)
     print(json.dumps(d, indent=4))
+    print("here is the email address that we're using:\t", syncservice.email)
