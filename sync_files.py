@@ -29,6 +29,7 @@ class SyncService:
         self._ROOT_DIR = os.path.expanduser('~/' + self.email)
         if not os.path.exists(self._ROOT_DIR):
             os.mkdir(self._ROOT_DIR)
+        self.CACHE_DIR =  os.path.expanduser('~/' + '.metadata_cache')
 
     
 # FILE METHODS:
@@ -107,13 +108,13 @@ class SyncService:
           print('An error occurred: %s' % error)
           break
 
-    def sync_from_gdrive_to_local(self, folder_id=None, current_dir_path=None):
+    def sync_from_gdrive_to_local(self, folder_id='root', current_dir_path=None):
         """
         This is an initial method I am going to use to sync remote gdrive directories to the local disk. 
         It might be rough at first, but we'll see how it goes...
         """
-        if not folder_id:
-            folder_id = 'root'
+        #if not folder_id:
+        #    folder_id = 'root'
         if not current_dir_path:
             current_dir_path = self._ROOT_DIR
         page_token = None
@@ -140,9 +141,18 @@ class SyncService:
               print('The id of the files parents is:\t %s' % file_meta['parents'][0]['id'])
               print('The MD5 is:\t %s' % file_meta.get('md5Checksum'))
               ## START SYNC
-              # test if MIME type = drive folder:
               local_path = current_dir_path + '/' + file_meta['title']
-              if file_meta['mimeType'] == 'application/vnd.google-apps.folder':
+              # The following is a dict which keys are the different types of MIME types of the files in google drive, and the values are how google describes the different types of files:
+              # google docs, sheets, presentations, etc all start with "application/vnd.google-apps."
+              mime_types = { 
+                    "folder" : "application/vnd.google-apps.folder",
+                    "google_file" : "application/vnd.google-apps.",
+                    "pdf" : "application/pdf",
+                    "txt" : "text/plain",
+                    }
+                        
+              # test if MIME type = drive folder:
+              if file_meta['mimeType'] == mime_types['folder']:
                 # if directory doesn't already exist:
                 if not os.path.exists(local_path):
                   # create directory:
@@ -153,13 +163,21 @@ class SyncService:
                 #new_dir_path = current_dir_path + '/' file_meta['title']
                 print('This is the new_dir_path:\t', local_path)
                 self.sync_from_gdrive_to_local(folder_id = file_meta['id'], current_dir_path = local_path)
-              # test if the file type is a pdf:
-              if file_meta['mimeType'] == 'application/pdf': 
-                #filename = local_path + '.' + 'pdf'
-                print('This is the filename:\t', local_path)
-                with open(local_path, 'wb') as f:
-                  self.download_file(file_meta['id'], f)
-              #download_file(self, file_id, local_fd):
+              # test if the mime type of the file is not a Google doc, sheet, presentation, etc, as we can't download those sort of files without exporting them to a different format - which will cause problems with syncing:
+              else: 
+                if not file_meta['mimeType'].startswith(mime_types["google_file"]):
+                    print('This is the filename:\t', local_path)
+                    with open(local_path, 'wb') as f:
+                      self.download_file(file_meta['id'], f)
+              # THE ABOVE CODE SHOULD CATCH ALL THE TYPES OF FILE THAT CAN BE DOWNLOADED (including pdf's) MAKING THE BELOW CODE REDUNDANT:
+              # REMOVE AFTER CONFIRMING IT WORKS!
+              ## test if the file type is a pdf:
+              #if file_meta['mimeType'] == 'application/pdf': 
+              #  #filename = local_path + '.' + 'pdf'
+              #  print('This is the filename:\t', local_path)
+              #  with open(local_path, 'wb') as f:
+              #    self.download_file(file_meta['id'], f)
+              ##download_file(self, file_id, local_fd):
               ## END SYNC
             page_token = children.get('nextPageToken')
             if not page_token:
@@ -252,9 +270,9 @@ class SyncService:
 
 if __name__ == '__main__':
     syncservice = SyncService()
-    #print('before calling syncservice')
-    #syncservice.sync_from_gdrive_to_local()
-    #print('after calling syncservice')
+    print('before calling syncservice')
+    syncservice.sync_from_gdrive_to_local()
+    print('after calling syncservice')
     #Books_id = '0B2Vt6e4DFEDGMTBqOGhpa2FjMFE'
     ## Here is the file id for "new-books", which is a sub-directory of "Books" (which is a sub-directory of 'root'):
     ## NOTE: I couldn't use "new-books" as a variable name, because it contains a "-" (which is an operator).. don't think I can avoid that...
@@ -275,8 +293,9 @@ if __name__ == '__main__':
     ##print("here is the total dict:\n", json.dumps(cik_smarthomes, indent=4))
     #json.dump(cik_smarthomes, open(path + filename, 'w'), indent=4)
     ##def print_file_metadata(self, file_id, whole_file=False):
-    import json
-    d = syncservice.print_file_metadata('root', whole_file=True, return_dict=True)
-    print("here is the returned dict:", d)
-    print(json.dumps(d, indent=4))
-    print("here is the email address that we're using:\t", syncservice.email)
+    # Test the "return_dict" optional arg:
+    #import json
+    #d = syncservice.print_file_metadata('root', whole_file=True, return_dict=True)
+    #print("here is the returned dict:", d)
+    #print(json.dumps(d, indent=4))
+    #print("here is the email address that we're using:\t", syncservice.email)
