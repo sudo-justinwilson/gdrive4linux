@@ -1,4 +1,5 @@
 import os
+import json
 from apiclient import errors
 #from pickled_service2_without_pickle_state_methods import auth_with_apiclient
 from googleservice import auth_with_apiclient
@@ -26,10 +27,17 @@ class SyncService:
         self.service = instance.create_service()
         about = self.service.about().get().execute()
         self.email = about['user']['emailAddress']
+        print("The keys of the about object is:\t", about.keys())
+        print(json.dumps(about, indent=4))
         self._ROOT_DIR = os.path.expanduser('~/' + self.email)
         if not os.path.exists(self._ROOT_DIR):
             os.mkdir(self._ROOT_DIR)
-        self.CACHE_DIR =  os.path.expanduser('~/' + '.metadata_cache')
+        self.CACHE_DIR =  self._ROOT_DIR + '/.metadata_cache'
+        if not os.path.exists(self.CACHE_DIR):
+            os.mkdir(self.CACHE_DIR)
+        # store the user data:
+        if not os.path.exists(self.CACHE_DIR + '/.about'):
+            json.dump(about, open(self.CACHE_DIR + '/.about', 'w'), indent=4)
 
     
 # FILE METHODS:
@@ -134,7 +142,8 @@ class SyncService:
             print('Entering for child loop:')
             for child in children.get('items', []):
               print('In for child loop. Calling file_meta method:')
-              file_meta = self.service.files().get(fileId=child['id']).execute()
+              #file_meta = self.service.files().get(fileId=child['id']).execute()
+              file_meta = self.get_file_metadata(child['id'])
               print('File Id: %s' % child['id'])
               print('The name of the file is:\t %s' % file_meta['title'])
               print('MIME type:\t %s' % file_meta['mimeType'])
@@ -167,17 +176,12 @@ class SyncService:
               else: 
                 if not file_meta['mimeType'].startswith(mime_types["google_file"]):
                     print('This is the filename:\t', local_path)
-                    with open(local_path, 'wb') as f:
-                      self.download_file(file_meta['id'], f)
-              # THE ABOVE CODE SHOULD CATCH ALL THE TYPES OF FILE THAT CAN BE DOWNLOADED (including pdf's) MAKING THE BELOW CODE REDUNDANT:
-              # REMOVE AFTER CONFIRMING IT WORKS!
-              ## test if the file type is a pdf:
-              #if file_meta['mimeType'] == 'application/pdf': 
-              #  #filename = local_path + '.' + 'pdf'
-              #  print('This is the filename:\t', local_path)
-              #  with open(local_path, 'wb') as f:
-              #    self.download_file(file_meta['id'], f)
-              ##download_file(self, file_id, local_fd):
+                    ## test if the file already exists:
+                    if not os.path.exists(local_path):
+                    #    # test if the file contents are the same as the remote file:
+
+                        with open(local_path, 'wb') as f:
+                            self.download_file(file_meta['id'], f)
               ## END SYNC
             page_token = children.get('nextPageToken')
             if not page_token:
@@ -215,12 +219,8 @@ class SyncService:
             - file_id:  the id of the file to download.
         """
         try:
-        file_metadata = self.service.files().get(fileId = file_id).execute()
-        return file_metadata
-      try:
-        file = self.service.files().get(fileId=file_id).execute()
-        if return_dict:
-            return file
+            file_metadata = self.service.files().get(fileId = file_id).execute()
+            return file_metadata
         except errors.HttpError as error:
             print('An error occurred: %s' % error)
 
@@ -287,9 +287,9 @@ class SyncService:
 
 if __name__ == '__main__':
     syncservice = SyncService()
-    print('before calling syncservice')
-    syncservice.sync_from_gdrive_to_local()
-    print('after calling syncservice')
+    #print('before calling syncservice')
+    #syncservice.sync_from_gdrive_to_local()
+    #print('after calling syncservice')
     #Books_id = '0B2Vt6e4DFEDGMTBqOGhpa2FjMFE'
     ## Here is the file id for "new-books", which is a sub-directory of "Books" (which is a sub-directory of 'root'):
     ## NOTE: I couldn't use "new-books" as a variable name, because it contains a "-" (which is an operator).. don't think I can avoid that...
