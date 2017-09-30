@@ -207,6 +207,23 @@ class SyncService:
           raise error
       return True
     
+    def get_file_metadata(self,file_id):
+        """
+        Makes a call to get the file's metadata, and returns it as a dict.
+        
+            Args:
+            - file_id:  the id of the file to download.
+        """
+        try:
+        file_metadata = self.service.files().get(fileId = file_id).execute()
+        return file_metadata
+      try:
+        file = self.service.files().get(fileId=file_id).execute()
+        if return_dict:
+            return file
+        except errors.HttpError as error:
+            print('An error occurred: %s' % error)
+
     def print_file_metadata(self, file_id, whole_file=False,return_dict=False):
       """print a file's metadata.
     
