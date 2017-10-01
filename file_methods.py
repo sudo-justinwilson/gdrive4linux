@@ -2,12 +2,21 @@ import os
 import json
 import shelve
 from apiclient import errors
-#from pickled_service2_without_pickle_state_methods import auth_with_apiclient
 from googleservice import auth_with_apiclient
 from apiclient import http
 # ...
 
 # UTILITY FUNCTIONS:
+def calculatemd5(filename, block_size=2**20):
+    import hashlib
+    md5 = hashlib.md5()
+    file = open(filename, 'rb')
+    while True:
+            data = file.read(block_size)
+            if not data:
+                    break
+            md5.update(data)
+    return md5.hexdigest()
 
 class SyncService:
     """
@@ -366,10 +375,10 @@ class SyncService:
 
 if __name__ == '__main__':
     syncservice = SyncService()
-    print('before calling syncservice')
-    #syncservice.sync_from_gdrive_to_local()
-    syncservice.new_sync_from_gdrive_to_local()
-    print('after calling syncservice')
+    #print('before calling syncservice')
+    ##syncservice.sync_from_gdrive_to_local()
+    #syncservice.new_sync_from_gdrive_to_local()
+    #print('after calling syncservice')
     #Books_id = '0B2Vt6e4DFEDGMTBqOGhpa2FjMFE'
     ## Here is the file id for "new-books", which is a sub-directory of "Books" (which is a sub-directory of 'root'):
     ## NOTE: I couldn't use "new-books" as a variable name, because it contains a "-" (which is an operator).. don't think I can avoid that...
@@ -437,3 +446,16 @@ if __name__ == '__main__':
     #    #print(thing)
     ##                    "folder" : "application/vnd.google-apps.folder",
     ## def print_files_in_folder(self, folder_id, print_metadata=False):
+
+    ## I want to see if I can recover teh shelved db:
+    #path = syncservice.SHELVE_PATH
+    #with shelve.open(path) as db:
+    #    for k in db:
+    #        print(k)
+    ## I AM PLEASED TO CONFIRM THAT IT WORKS!!
+
+    #
+    ## Test if the calculatemd5() function:
+    #h = calculatemd5(syncservice.SHELVE_PATH)
+    #print("The hash is:\t", h)
+
