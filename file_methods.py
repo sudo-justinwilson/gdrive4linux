@@ -274,16 +274,19 @@ class SyncService:
                     print('This is the filename:\t', local_path)
                     ## test if the file already exists:
                     if os.path.exists(local_path):
-                        # test if the file contents are the same as the remote file:
-                        print("The remote md5 is:\t", file_meta['md5Checksum'])
-                        print("The local  md5 is:\t", calculatemd5(local_path))
-                        if file_meta['md5Checksum'] != calculatemd5(local_path):
-                            # download the file:
-                            print("The file has changed. Downloading..")
-                            with open(local_path, 'wb') as f:
-                                self.download_file(file_meta['id'], f)
-                        else:
-                            print("The file already exists and the hashes match!")
+                        try:
+                            # test if the file contents are the same as the remote file:
+                            print("The remote md5 is:\t", file_meta['md5Checksum'])
+                            print("The local  md5 is:\t", calculatemd5(local_path))
+                            if file_meta['md5Checksum'] != calculatemd5(local_path):
+                                # download the file:
+                                print("The file has changed. Downloading..")
+                                with open(local_path, 'wb') as f:
+                                    self.download_file(file_meta['id'], f)
+                            else:
+                                print("The file already exists and the hashes match!")
+                        except Exception as e:
+                            print("An error occurred:\t", e)
                 ## END
                 ## END SYNC
             page_token = children.get('nextPageToken')
@@ -388,12 +391,63 @@ class SyncService:
           print('Download Complete')
           return
 
+    ## CHANGE METHODS:
+    def getstartpagetoken(self):
+        try:
+            changes = self.service.changes().getStartPageToken()
+            print("Here is the dir:\t", dir(changes))
+            number = changes.execute()
+            print("finished calling execute")
+            print("The type of the number is:\t", type(number))
+            print("The number is:\t", number)
+            #service = self.service
+            #about = self.service.about().get().execute()
+            #service.changes
+        except Exception as e:
+            print("An error occurred:\t", e)
+            return
+        return number
+
+    def retrieve_all_changes(self, service=None, start_change_id=None):
+      """Retrieve a list of Change resources.
+    
+      Args:
+        service: Drive API service instance.
+        start_change_id: ID of the change to start retrieving subsequent changes
+                         from or None.
+      Returns:
+        List of Change resources.
+      """
+      if not service:
+        service = self.service
+      result = []
+      page_token = None
+      while True:
+        try:
+          param = {}
+          if start_change_id:
+            param['startChangeId'] = start_change_id
+          if page_token:
+            param['pageToken'] = page_token
+          changes = service.changes().list(**param).execute()
+    
+          result.extend(changes['items'])
+          page_token = changes.get('nextPageToken')
+          if not page_token:
+            break
+        #except errors.HttpError, error as
+        except Exception as e:
+          print('An error occurred: %s' % error)
+          break
+      return result
+
+
 
 if __name__ == '__main__':
     syncservice = SyncService()
-    print('before calling syncservice')
+    #print('before calling syncservice')
     #syncservice.sync_from_gdrive_to_local()
-    syncservice.new_sync_from_gdrive_to_local()
+    #syncservice.new_sync_from_gdrive_to_local()
     #print('after calling syncservice')
     #Books_id = '0B2Vt6e4DFEDGMTBqOGhpa2FjMFE'
     ## Here is the file id for "new-books", which is a sub-directory of "Books" (which is a sub-directory of 'root'):
@@ -475,3 +529,22 @@ if __name__ == '__main__':
     #h = calculatemd5(syncservice.SHELVE_PATH)
     #print("The hash is:\t", h)
 
+    syncservice.getstartpagetoken()
+    #def retrieve_all_changes(self, service=self.service, start_change_id=None):
+    start = syncservice.getstartpagetoken()['startPageToken']
+    print("Here is the starting number id:\t", start)
+    
+    changes = syncservice.retrieve_all_changes(start_change_id=start)
+    print("The type of the changes is:\t", type(changes))
+    print("THE LENGTH OF THE LIST IS:\t", len(changes))
+    print("Here is the list:")
+    for change in changes:
+        print("The type of the change is:\t", type(change))
+        print(json.dumps(change, indent=4))
+        #print(change)
+    #changes = syncservice.retrieve_all_changes()
+    #print("The type of the changes is:\t", type(changes))
+    #for change in changes:
+    #    print("The type of the change is:\t", type(change))
+    #    print(json.dumps(change, indent=4))
+    #    #print(change)
