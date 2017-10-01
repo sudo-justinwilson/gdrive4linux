@@ -1,5 +1,6 @@
 import os
 import json
+import shelve
 from apiclient import errors
 #from pickled_service2_without_pickle_state_methods import auth_with_apiclient
 from googleservice import auth_with_apiclient
@@ -27,17 +28,16 @@ class SyncService:
         self.service = instance.create_service()
         about = self.service.about().get().execute()
         self.email = about['user']['emailAddress']
-        print("The keys of the about object is:\t", about.keys())
-        print(json.dumps(about, indent=4))
         self._ROOT_DIR = os.path.expanduser('~/' + self.email)
         if not os.path.exists(self._ROOT_DIR):
             os.mkdir(self._ROOT_DIR)
-        self.CACHE_DIR =  self._ROOT_DIR + '/.metadata_cache'
+        self.CACHE_DIR =  self._ROOT_DIR + '/.config'
         if not os.path.exists(self.CACHE_DIR):
             os.mkdir(self.CACHE_DIR)
         # store the user data:
         if not os.path.exists(self.CACHE_DIR + '/.about'):
             json.dump(about, open(self.CACHE_DIR + '/.about', 'w'), indent=4)
+        self.SHELVE_PATH = self.CACHE_DIR + '/.metadata_cache.db'
 
     
 # FILE METHODS:
@@ -189,6 +189,85 @@ class SyncService:
           except errors.HttpError as error:
             print('An error occurred: %s' % error)
             break
+
+    def new_sync_from_gdrive_to_local(self, folder_id='root', current_dir_path=None):
+        """
+        This is an initial method I am going to use to sync remote gdrive directories to the local disk. 
+        It might be rough at first, but we'll see how it goes...
+        """
+        #if not folder_id:
+        #    folder_id = 'root'
+        if not current_dir_path:
+            current_dir_path = self._ROOT_DIR
+        page_token = None
+        while True:
+          try:
+            #file = service.files().get(fileId=file_id).execute()
+            # The 'param' is where we can add params as keys for list method:
+            param = {}
+            if page_token:
+              param['pageToken'] = page_token
+            # Add orderBy=folder,title param, so the results are ordered by directories first, then name:
+            param['orderBy'] = 'folder,title'
+            print('Calling\t children().list(), etc:')
+            children = self.service.children().list(
+                folderId=folder_id, **param).execute()
+    
+            print('Entering for child loop:')
+            for child in children.get('items', []):
+              print('In for child loop. Calling file_meta method:')
+              #file_meta = self.service.files().get(fileId=child['id']).execute()
+              file_meta = self.get_file_metadata(child['id'])
+              # Store the file metadata in a shelve file:
+              print("HERE IS THE SHELVE.PATH:\t", self.SHELVE_PATH)
+              #shelve_db = shelve.open(self.SHELVE_PATH)
+              with shelve.open(self.SHELVE_PATH) as shelve_db:
+                shelve_db[child['id']] = file_meta
+              print('File Id: %s' % child['id'])
+              print('The name of the file is:\t %s' % file_meta['title'])
+              print('MIME type:\t %s' % file_meta['mimeType'])
+              print('The id of the files parents is:\t %s' % file_meta['parents'][0]['id'])
+              print('The MD5 is:\t %s' % file_meta.get('md5Checksum'))
+              ## START SYNC
+              local_path = current_dir_path + '/' + file_meta['title']
+              # The following is a dict which keys are the different types of MIME types of the files in google drive, and the values are how google describes the different types of files:
+              # google docs, sheets, presentations, etc all start with "application/vnd.google-apps."
+              mime_types = { 
+                    "folder" : "application/vnd.google-apps.folder",
+                    "google_file" : "application/vnd.google-apps.",
+                    "pdf" : "application/pdf",
+                    "txt" : "text/plain",
+                    }
+                        
+              # test if MIME type = drive folder:
+              if file_meta['mimeType'] == mime_types['folder']:
+                # if directory doesn't already exist:
+                if not os.path.exists(local_path):
+                  # create directory:
+                  print('MAKING DIRECTORY:\t', local_path)
+                  os.mkdir(local_path)
+                # Calling itself recursively:
+                print('Calling sync recursively:')
+                #new_dir_path = current_dir_path + '/' file_meta['title']
+                print('This is the new_dir_path:\t', local_path)
+                self.new_sync_from_gdrive_to_local(folder_id = file_meta['id'], current_dir_path = local_path)
+              # test if the mime type of the file is not a Google doc, sheet, presentation, etc, as we can't download those sort of files without exporting them to a different format - which will cause problems with syncing:
+              else: 
+                if not file_meta['mimeType'].startswith(mime_types["google_file"]):
+                    print('This is the filename:\t', local_path)
+                    ## test if the file already exists:
+                    if not os.path.exists(local_path):
+                        # test if the file contents are the same as the remote file:
+                        with open(local_path, 'wb') as f:
+                            self.download_file(file_meta['id'], f)
+              ## END SYNC
+            page_token = children.get('nextPageToken')
+            if not page_token:
+              break
+          except errors.HttpError as error:
+            print('An error occurred: %s' % error)
+            break
+    
     
     # ...
     
@@ -287,9 +366,10 @@ class SyncService:
 
 if __name__ == '__main__':
     syncservice = SyncService()
-    #print('before calling syncservice')
+    print('before calling syncservice')
     #syncservice.sync_from_gdrive_to_local()
-    #print('after calling syncservice')
+    syncservice.new_sync_from_gdrive_to_local()
+    print('after calling syncservice')
     #Books_id = '0B2Vt6e4DFEDGMTBqOGhpa2FjMFE'
     ## Here is the file id for "new-books", which is a sub-directory of "Books" (which is a sub-directory of 'root'):
     ## NOTE: I couldn't use "new-books" as a variable name, because it contains a "-" (which is an operator).. don't think I can avoid that...
@@ -316,3 +396,44 @@ if __name__ == '__main__':
     #print("here is the returned dict:", d)
     #print(json.dumps(d, indent=4))
     #print("here is the email address that we're using:\t", syncservice.email)
+    #
+    #def calculatemd5(filename, block_size=2**20):
+    #    import hashlib
+    #    md5 = hashlib.md5()
+    #    file = open(filename, 'rb')
+    #    while True:
+    #            data = file.read(block_size)
+    #            if not data:
+    #                    break
+    #            md5.update(data)
+    #    return md5.hexdigest()
+
+    #path = "/home/justin/tmp/test-file.txt"
+    #print("This is the path to the file that we want the md5 of:\t", path)
+    #print("Now we'll calculate the md5 hash:")
+    #print(calculatemd5(path))
+    #
+
+    #def get_meta(folder='root'):
+    #    print("This is the folder that we're in right now:\t", folder)
+    #    for thing in syncservice.get_metadata_to_download_files(folder, print_metadata=True, return_dict=True):
+    #        print(json.dumps(thing, indent=4))
+    #        if thing['mimeType'] == "application/vnd.google-apps.folder":
+    #            print("Found an item that is a folder!")
+    #            return get_meta(folder=thing['id'])
+
+    #get_meta()
+
+    #for thing in syncservice.get_metadata_to_download_files('root', print_metadata=True, return_dict=True):
+    #    #if thing['mimeType'] == "application/vnd.google-apps.folder":
+    #    #    for thing in syncservice.get_metadata_to_download_files('root', print_metadata=True, return_dict=True):
+    #        
+    #    print("The title of the thing is:\t", thing['title'])
+    #    print("The type of the thing is:\t", type(thing))
+    #    print("The mime type of the thing is:\t", thing['mimeType'])
+    #    print("The id of the the thing is:\t", thing['id'])
+    #    print('The MD5 is:\t %s' % thing.get('md5Checksum'))
+    #    
+    #    #print(thing)
+    ##                    "folder" : "application/vnd.google-apps.folder",
+    ## def print_files_in_folder(self, folder_id, print_metadata=False):

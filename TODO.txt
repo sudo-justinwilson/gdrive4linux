@@ -4,3 +4,6 @@ TO-DO list:
     - For the time being, write a method in sync_files.py that writes the metadata dict as json to a specified path.
     - Change sync_files.sync_from_gdrive_to_local() so that it firstly stores the metadata for the directory that's being synced in a json file (using the method to be written in the previous to-do task), then after the metadata for the folder has been stored, we need to store the metadata for each file in the directory.
     - Fix the sync_from_gdrive_to_local method so that it can handle if the file already exists - and if it does, then check the md5 -> then the last modified date with stat (and I could probably add a new "last_synced" key to the metadata).
+    - write the class function or method to calculate the md5 hash of a file.
+    - Add an option so that we can copy and paste the URL, and get back the auth code on a headless machine.
+
