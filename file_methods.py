@@ -262,14 +262,30 @@ class SyncService:
                 self.new_sync_from_gdrive_to_local(folder_id = file_meta['id'], current_dir_path = local_path)
               # test if the mime type of the file is not a Google doc, sheet, presentation, etc, as we can't download those sort of files without exporting them to a different format - which will cause problems with syncing:
               else: 
+                #if not file_meta['mimeType'].startswith(mime_types["google_file"]):
+                #    print('This is the filename:\t', local_path)
+                #    ## test if the file already exists:
+                #    if not os.path.exists(local_path):
+                #        # test if the file contents are the same as the remote file:
+                #        with open(local_path, 'wb') as f:
+                #            self.download_file(file_meta['id'], f)
+                ## NEW
                 if not file_meta['mimeType'].startswith(mime_types["google_file"]):
                     print('This is the filename:\t', local_path)
                     ## test if the file already exists:
-                    if not os.path.exists(local_path):
+                    if os.path.exists(local_path):
                         # test if the file contents are the same as the remote file:
-                        with open(local_path, 'wb') as f:
-                            self.download_file(file_meta['id'], f)
-              ## END SYNC
+                        print("The remote md5 is:\t", file_meta['md5Checksum'])
+                        print("The local  md5 is:\t", calculatemd5(local_path))
+                        if file_meta['md5Checksum'] != calculatemd5(local_path):
+                            # download the file:
+                            print("The file has changed. Downloading..")
+                            with open(local_path, 'wb') as f:
+                                self.download_file(file_meta['id'], f)
+                        else:
+                            print("The file already exists and the hashes match!")
+                ## END
+                ## END SYNC
             page_token = children.get('nextPageToken')
             if not page_token:
               break
@@ -375,9 +391,9 @@ class SyncService:
 
 if __name__ == '__main__':
     syncservice = SyncService()
-    #print('before calling syncservice')
-    ##syncservice.sync_from_gdrive_to_local()
-    #syncservice.new_sync_from_gdrive_to_local()
+    print('before calling syncservice')
+    #syncservice.sync_from_gdrive_to_local()
+    syncservice.new_sync_from_gdrive_to_local()
     #print('after calling syncservice')
     #Books_id = '0B2Vt6e4DFEDGMTBqOGhpa2FjMFE'
     ## Here is the file id for "new-books", which is a sub-directory of "Books" (which is a sub-directory of 'root'):
