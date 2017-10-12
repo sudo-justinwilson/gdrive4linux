@@ -62,7 +62,11 @@ class auth_with_apiclient:
                 auth_code = self.get_auth_code(url)
             self.credentials = self.flow.step2_exchange(auth_code)
             self.pickled = True
-            pickle.dump( self, open(self.pickle_path, 'wb') )
+            try:
+                pickle.dump( self, open(self.pickle_path, 'wb') )
+            except FileNotFoundError as e:
+                print("The pickle path does not exist:\t", e.filename)
+                return -1
         if not http_auth:
             http_auth = self.credentials.authorize(httplib2.Http())
         drive_service = build('drive', version, http=http_auth)
