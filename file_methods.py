@@ -23,7 +23,11 @@ class SyncService:
     This class contains all the methods relating to files.
     I have temporarily defined alot of runtime variables in the init just for cnvenience, but I have to remember to remove it after...
     """
+<<<<<<< HEAD
     def __init__(self, client_secrets="/home/justin/Downloads/gdrive4linux_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json", gdrive_scope='https://www.googleapis.com/auth/drive', pickle_path=False, verbose=False):
+=======
+    def __init__(self, client_secrets="/home/justin/.secrets/gdrive4linux_client_secret_2017-10-12.json", gdrive_scope='https://www.googleapis.com/auth/drive', pickle_path=False):
+>>>>>>> d48bd93daf5aed84a80621e3edeca33e8da2e2f1
         """
         Create an object which has methods pertaining to files.
 
@@ -31,8 +35,13 @@ class SyncService:
             client_secrets, gdrive_scope and pickle_path are required to create a google drive service object.
         """
         if not pickle_path:
-            # These pickled creds are for cik.smarthomes@gmail.com:
-            pickle_path='/home/justin/Dropbox/Coding/Projects/gdrive4linux/cik.smarthomes.pickled_credentials_20170929'
+            try:
+                # These pickled creds are for cik.smarthomes@gmail.com:
+                pickle_path='/home/justin/Dropbox/Coding/Projects/gdrive4linux/cik.smarthomes.pickled_credentials_20170929'
+            except FileNotFoundError as e:
+                print("The pickle path that you provided does not exist:\t", e)
+            except exception as e:
+                print("There was an error:\t", e)
         instance = auth_with_apiclient(client_path=client_secrets, scope=gdrive_scope, pickle_path=pickle_path)
         self.service = instance.create_service()
         about = self.service.about().get().execute()
