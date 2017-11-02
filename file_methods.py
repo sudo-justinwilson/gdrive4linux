@@ -4,7 +4,7 @@ import shelve
 from apiclient import errors
 from googleservice import auth_with_apiclient
 from apiclient import http
-# ...
+from testing import debug
 
 # UTILITY FUNCTIONS:
 def calculatemd5(filename, block_size=2**20):
@@ -23,7 +23,7 @@ class SyncService:
     This class contains all the methods relating to files.
     I have temporarily defined alot of runtime variables in the init just for cnvenience, but I have to remember to remove it after...
     """
-    def __init__(self, client_secrets="/home/justin/Downloads/gdrive4linux_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json", gdrive_scope='https://www.googleapis.com/auth/drive', pickle_path=False):
+    def __init__(self, client_secrets="/home/justin/Downloads/gdrive4linux_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json", gdrive_scope='https://www.googleapis.com/auth/drive', pickle_path=False, verbose=False):
         """
         Create an object which has methods pertaining to files.
 
@@ -47,6 +47,8 @@ class SyncService:
         if not os.path.exists(self.CACHE_DIR + '/.about'):
             json.dump(about, open(self.CACHE_DIR + '/.about', 'w'), indent=4)
         self.SHELVE_PATH = self.CACHE_DIR + '/.metadata_cache.db'
+        # 'verbose' is a flag that indicates whether or not to print debugging data lines:
+        self.verbose = verbose
 
     
 # FILE METHODS:
@@ -218,25 +220,25 @@ class SyncService:
               param['pageToken'] = page_token
             # Add orderBy=folder,title param, so the results are ordered by directories first, then name:
             param['orderBy'] = 'folder,title'
-            print('Calling\t children().list(), etc:')
+            debug(self.verbose, 'Calling\t children().list(), etc:')
             children = self.service.children().list(
                 folderId=folder_id, **param).execute()
     
-            print('Entering for child loop:')
+            debug(self.verbose, 'Entering for child loop:')
             for child in children.get('items', []):
-              print('In for child loop. Calling file_meta method:')
+              debug(self.verbose, 'In for child loop. Calling file_meta method:')
               #file_meta = self.service.files().get(fileId=child['id']).execute()
               file_meta = self.get_file_metadata(child['id'])
               # Store the file metadata in a shelve file:
-              print("HERE IS THE SHELVE.PATH:\t", self.SHELVE_PATH)
+              debug(self.verbose, "HERE IS THE SHELVE.PATH:\t", self.SHELVE_PATH)
               #shelve_db = shelve.open(self.SHELVE_PATH)
               with shelve.open(self.SHELVE_PATH) as shelve_db:
                 shelve_db[child['id']] = file_meta
-              print('File Id: %s' % child['id'])
-              print('The name of the file is:\t %s' % file_meta['title'])
-              print('MIME type:\t %s' % file_meta['mimeType'])
-              print('The id of the files parents is:\t %s' % file_meta['parents'][0]['id'])
-              print('The MD5 is:\t %s' % file_meta.get('md5Checksum'))
+              debug(self.verbose, 'File Id: %s' % child['id'])
+              debug(self.verbose, 'The name of the file is:\t %s' % file_meta['title'])
+              debug(self.verbose, 'MIME type:\t %s' % file_meta['mimeType'])
+              debug(self.verbose, 'The id of the files parents is:\t %s' % file_meta['parents'][0]['id'])
+              debug(self.verbose, 'The MD5 is:\t %s' % file_meta.get('md5Checksum'))
               ## START SYNC
               local_path = current_dir_path + '/' + file_meta['title']
               # The following is a dict which keys are the different types of MIME types of the files in google drive, and the values are how google describes the different types of files:
@@ -253,17 +255,17 @@ class SyncService:
                 # if directory doesn't already exist:
                 if not os.path.exists(local_path):
                   # create directory:
-                  print('MAKING DIRECTORY:\t', local_path)
+                  debug(self.verbose, 'MAKING DIRECTORY:\t', local_path)
                   os.mkdir(local_path)
                 # Calling itself recursively:
-                print('Calling sync recursively:')
+                debug(self.verbose, 'Calling sync recursively:')
                 #new_dir_path = current_dir_path + '/' file_meta['title']
-                print('This is the new_dir_path:\t', local_path)
+                debug(self.verbose, 'This is the new_dir_path:\t', local_path)
                 self.new_sync_from_gdrive_to_local(folder_id = file_meta['id'], current_dir_path = local_path)
               # test if the mime type of the file is not a Google doc, sheet, presentation, etc, as we can't download those sort of files without exporting them to a different format - which will cause problems with syncing:
               else: 
                 #if not file_meta['mimeType'].startswith(mime_types["google_file"]):
-                #    print('This is the filename:\t', local_path)
+                #    debug(self.verbose, 'This is the filename:\t', local_path)
                 #    ## test if the file already exists:
                 #    if not os.path.exists(local_path):
                 #        # test if the file contents are the same as the remote file:
@@ -271,20 +273,20 @@ class SyncService:
                 #            self.download_file(file_meta['id'], f)
                 ## NEW
                 if not file_meta['mimeType'].startswith(mime_types["google_file"]):
-                    print('This is the filename:\t', local_path)
+                    debug(self.verbose, 'This is the filename:\t', local_path)
                     ## test if the file already exists:
                     if os.path.exists(local_path):
                         try:
                             # test if the file contents are the same as the remote file:
-                            print("The remote md5 is:\t", file_meta['md5Checksum'])
-                            print("The local  md5 is:\t", calculatemd5(local_path))
+                            debug(self.verbose, "The remote md5 is:\t", file_meta['md5Checksum'])
+                            debug(self.verbose, "The local  md5 is:\t", calculatemd5(local_path))
                             if file_meta['md5Checksum'] != calculatemd5(local_path):
                                 # download the file:
-                                print("The file has changed. Downloading..")
+                                debug(self.verbose, "The file has changed. Downloading..")
                                 with open(local_path, 'wb') as f:
                                     self.download_file(file_meta['id'], f)
                             else:
-                                print("The file already exists and the hashes match!")
+                                debug(self.verbose, "The file already exists and the hashes match!")
                         except Exception as e:
                             print("An error occurred:\t", e)
                 ## END
@@ -444,10 +446,10 @@ class SyncService:
 
 
 if __name__ == '__main__':
-    syncservice = SyncService()
+    syncservice = SyncService(verbose=True)
     #print('before calling syncservice')
     #syncservice.sync_from_gdrive_to_local()
-    #syncservice.new_sync_from_gdrive_to_local()
+    syncservice.new_sync_from_gdrive_to_local()
     #print('after calling syncservice')
     #Books_id = '0B2Vt6e4DFEDGMTBqOGhpa2FjMFE'
     ## Here is the file id for "new-books", which is a sub-directory of "Books" (which is a sub-directory of 'root'):
@@ -516,6 +518,9 @@ if __name__ == '__main__':
     #    #print(thing)
     ##                    "folder" : "application/vnd.google-apps.folder",
     ## def print_files_in_folder(self, folder_id, print_metadata=False):
+    #
+    ## uncomment below to test print_files_in_folder method:
+    #syncservice.print_files_in_folder('root', print_metadata=True)
 
     ## I want to see if I can recover teh shelved db:
     #path = syncservice.SHELVE_PATH
@@ -529,22 +534,32 @@ if __name__ == '__main__':
     #h = calculatemd5(syncservice.SHELVE_PATH)
     #print("The hash is:\t", h)
 
-    syncservice.getstartpagetoken()
-    #def retrieve_all_changes(self, service=self.service, start_change_id=None):
-    start = syncservice.getstartpagetoken()['startPageToken']
-    print("Here is the starting number id:\t", start)
+    #syncservice.getstartpagetoken()
+    ##def retrieve_all_changes(self, service=self.service, start_change_id=None):
+    #start = syncservice.getstartpagetoken()['startPageToken']
+    #print("Here is the starting number id:\t", start)
     
-    changes = syncservice.retrieve_all_changes(start_change_id=start)
-    print("The type of the changes is:\t", type(changes))
-    print("THE LENGTH OF THE LIST IS:\t", len(changes))
-    print("Here is the list:")
-    for change in changes:
-        print("The type of the change is:\t", type(change))
-        print(json.dumps(change, indent=4))
-        #print(change)
-    #changes = syncservice.retrieve_all_changes()
+    ## test out the changes methods:
+    #changes = syncservice.retrieve_all_changes(start_change_id=start)
     #print("The type of the changes is:\t", type(changes))
+    #print("THE LENGTH OF THE LIST IS:\t", len(changes))
+    #print("Here is the list:")
     #for change in changes:
     #    print("The type of the change is:\t", type(change))
     #    print(json.dumps(change, indent=4))
     #    #print(change)
+    ##changes = syncservice.retrieve_all_changes()
+    ##print("The type of the changes is:\t", type(changes))
+    ##for change in changes:
+    ##    print("The type of the change is:\t", type(change))
+    ##    print(json.dumps(change, indent=4))
+    ##    #print(change)
+
+    ## test out the debug function:
+    #def f1(x, verbose=False):
+    #    debug("Entered f1", verbose)
+    #    return x
+    #print("This is with verbose set to false:")
+    #print(f1("arg passed to f1"))
+    #print("This is with verbose set to true:")
+    #print(f1("arg passed to f1", verbose=True))
