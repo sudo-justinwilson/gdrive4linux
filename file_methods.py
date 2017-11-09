@@ -23,7 +23,9 @@ class SyncService:
     This class contains all the methods relating to files.
     I have temporarily defined alot of runtime variables in the init just for cnvenience, but I have to remember to remove it after...
     """
-    def __init__(self, client_secrets="/home/justin/.secrets/gdrive4linux_client_secret_2017-10-12.json", gdrive_scope='https://www.googleapis.com/auth/drive', pickle_path=False):
+    # TODO: I have to figure out a way to get the client_secrets path without hardcoding it in, cos I have to push it every time it changes??
+    #def __init__(self, client_secrets="/home/justin/.secrets/gdrive4linux_client_secret_2017-10-12.json", gdrive_scope='https://www.googleapis.com/auth/drive', pickle_path=False):
+    def __init__(self, client_secrets="/home/justinwilson/.secrets/gdrive4linux_client_secret_2017-10-12.json", gdrive_scope='https://www.googleapis.com/auth/drive', pickle_path=False):
         """
         Create an object which has methods pertaining to files.
 
@@ -450,106 +452,5 @@ class SyncService:
 
 if __name__ == '__main__':
     syncservice = SyncService()
-    #print('before calling syncservice')
-    #syncservice.sync_from_gdrive_to_local()
-    #syncservice.new_sync_from_gdrive_to_local()
-    #print('after calling syncservice')
-    #Books_id = '0B2Vt6e4DFEDGMTBqOGhpa2FjMFE'
-    ## Here is the file id for "new-books", which is a sub-directory of "Books" (which is a sub-directory of 'root'):
-    ## NOTE: I couldn't use "new-books" as a variable name, because it contains a "-" (which is an operator).. don't think I can avoid that...
-    #new_books_id = '0B2Vt6e4DFEDGemVrX2VjdFI1TVk'
-    ## Here is the file id for the "Pre-Calibre books" directory:
-    #precalibre_books_id = '0B2Vt6e4DFEDGWTNpM0xnVUtDVmc'
-
-
-    #def get_metadata_to_download_files(self, folder_id, print_metadata=False, return_dict=False):
-    #path = '/home/justin/Dropbox/Coding/Projects/gdrive4linux/'
-    #cik_smarthomes = {}
-    #for f in syncservice.get_metadata_to_download_files('root', return_dict=True):
-    #    #print("Here's when I call f['id']:\t", f['id'])
-    #    #print('Here are the items in the dict:\t', f.items())
-    #    cik_smarthomes[f['id']] = f
-    #filename = 'cik.smarthomes@gmail.com_list-files_in_root.json'
-    #import json
-    ##print("here is the total dict:\n", json.dumps(cik_smarthomes, indent=4))
-    #json.dump(cik_smarthomes, open(path + filename, 'w'), indent=4)
-    ##def print_file_metadata(self, file_id, whole_file=False):
-    # Test the "return_dict" optional arg:
-    #import json
-    #d = syncservice.print_file_metadata('root', whole_file=True, return_dict=True)
-    #print("here is the returned dict:", d)
-    #print(json.dumps(d, indent=4))
-    #print("here is the email address that we're using:\t", syncservice.email)
-    #
-    #def calculatemd5(filename, block_size=2**20):
-    #    import hashlib
-    #    md5 = hashlib.md5()
-    #    file = open(filename, 'rb')
-    #    while True:
-    #            data = file.read(block_size)
-    #            if not data:
-    #                    break
-    #            md5.update(data)
-    #    return md5.hexdigest()
-
-    #path = "/home/justin/tmp/test-file.txt"
-    #print("This is the path to the file that we want the md5 of:\t", path)
-    #print("Now we'll calculate the md5 hash:")
-    #print(calculatemd5(path))
-    #
-
-    #def get_meta(folder='root'):
-    #    print("This is the folder that we're in right now:\t", folder)
-    #    for thing in syncservice.get_metadata_to_download_files(folder, print_metadata=True, return_dict=True):
-    #        print(json.dumps(thing, indent=4))
-    #        if thing['mimeType'] == "application/vnd.google-apps.folder":
-    #            print("Found an item that is a folder!")
-    #            return get_meta(folder=thing['id'])
-
-    #get_meta()
-
-    #for thing in syncservice.get_metadata_to_download_files('root', print_metadata=True, return_dict=True):
-    #    #if thing['mimeType'] == "application/vnd.google-apps.folder":
-    #    #    for thing in syncservice.get_metadata_to_download_files('root', print_metadata=True, return_dict=True):
-    #        
-    #    print("The title of the thing is:\t", thing['title'])
-    #    print("The type of the thing is:\t", type(thing))
-    #    print("The mime type of the thing is:\t", thing['mimeType'])
-    #    print("The id of the the thing is:\t", thing['id'])
-    #    print('The MD5 is:\t %s' % thing.get('md5Checksum'))
-    #    
-    #    #print(thing)
-    ##                    "folder" : "application/vnd.google-apps.folder",
-    ## def print_files_in_folder(self, folder_id, print_metadata=False):
-
-    ## I want to see if I can recover teh shelved db:
-    #path = syncservice.SHELVE_PATH
-    #with shelve.open(path) as db:
-    #    for k in db:
-    #        print(k)
-    ## I AM PLEASED TO CONFIRM THAT IT WORKS!!
-
-    #
-    ## Test if the calculatemd5() function:
-    #h = calculatemd5(syncservice.SHELVE_PATH)
-    #print("The hash is:\t", h)
-
-    syncservice.getstartpagetoken()
-    #def retrieve_all_changes(self, service=self.service, start_change_id=None):
-    start = syncservice.getstartpagetoken()['startPageToken']
-    print("Here is the starting number id:\t", start)
-    
-    changes = syncservice.retrieve_all_changes(start_change_id=start)
-    print("The type of the changes is:\t", type(changes))
-    print("THE LENGTH OF THE LIST IS:\t", len(changes))
-    print("Here is the list:")
-    for change in changes:
-        print("The type of the change is:\t", type(change))
-        print(json.dumps(change, indent=4))
-        #print(change)
-    #changes = syncservice.retrieve_all_changes()
-    #print("The type of the changes is:\t", type(changes))
-    #for change in changes:
-    #    print("The type of the change is:\t", type(change))
-    #    print(json.dumps(change, indent=4))
-    #    #print(change)
+    #def print_files_in_folder(self, folder_id, print_metadata=False):
+    SyncService.print_metadata('root')
