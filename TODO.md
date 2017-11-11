@@ -6,3 +6,6 @@
     - Add an option so that we can copy and paste the URL, and get back the auth code on a headless machine.
     - I got to work out how to detect files that have been added, as it seems that changes do not include files that have been added remotely - but I am still investigating this..
 
+
+#Daily tasks:
+    - Seperate file_methods.py so that any service can be used, and the service is not hard coded into it.
