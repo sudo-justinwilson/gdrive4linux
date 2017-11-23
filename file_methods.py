@@ -18,12 +18,12 @@ def calculatemd5(filename, block_size=2**20):
             md5.update(data)
     return md5.hexdigest()
 
-class SyncService:
+#class SyncService:
+class Methods:
     """
     This class contains all the methods relating to files.
     I have temporarily defined alot of runtime variables in the init just for cnvenience, but I have to remember to remove it after...
     """
-    #def __init__(self, client_secrets="/home/justin/Downloads/gdrive4linux_secret_496253704845-c2bofad70kl7nj0415p7fnrptv6c1ftd.apps.googleusercontent.com.json", gdrive_scope='https://www.googleapis.com/auth/drive', pickle_path=False, verbose=False):
     def __init__(self, verbose=False):
         """
         Create an object which has methods pertaining to files.
@@ -209,7 +209,7 @@ class SyncService:
             print(e.args)
             break
 
-    def new_sync_from_gdrive_to_local(self, service, folder_id='root', current_dir_path=None):
+    def new_sync_from_gdrive_to_local(self, service, SHELVE_PATH, folder_id='root', current_dir_path=None):
         """
         This is an initial method I am going to use to sync remote gdrive directories to the local disk. 
         It might be rough at first, but we'll see how it goes...
@@ -235,9 +235,8 @@ class SyncService:
               debug(self.verbose, 'In for child loop. Calling file_meta method:')
               file_meta = self.get_file_metadata(child['id'])
               # Store the file metadata in a shelve file:
-              debug(self.verbose, "HERE IS THE SHELVE.PATH:\t", self.SHELVE_PATH)
-              #shelve_db = shelve.open(self.SHELVE_PATH)
-              with shelve.open(self.SHELVE_PATH) as shelve_db:
+              debug(self.verbose, "HERE IS THE SHELVE.PATH:\t", SHELVE_PATH)
+              with shelve.open(SHELVE_PATH) as shelve_db:
                 shelve_db[child['id']] = file_meta
               debug(self.verbose, 'File Id: %s' % child['id'])
               debug(self.verbose, 'The name of the file is:\t %s' % file_meta['title'])
@@ -266,7 +265,7 @@ class SyncService:
                 debug(self.verbose, 'Calling sync recursively:')
                 #new_dir_path = current_dir_path + '/' file_meta['title']
                 debug(self.verbose, 'This is the new_dir_path:\t', local_path)
-                self.new_sync_from_gdrive_to_local(folder_id = file_meta['id'], current_dir_path = local_path)
+                self.new_sync_from_gdrive_to_local(service, SHELVE_PATH, folder_id = file_meta['id'], current_dir_path = local_path)
               # test if the mime type of the file is not a Google doc, sheet, presentation, etc, as we can't download those sort of files without exporting them to a different format - which will cause problems with syncing:
               else: 
                 if not file_meta['mimeType'].startswith(mime_types["google_file"]):
@@ -436,6 +435,15 @@ class SyncService:
           print('An error occurred: %s' % error)
           break
       return result
+
+    def about(self, service):
+        """
+        Returns an "about" object.
+        """
+        #self.email = about['user']['emailAddress']
+        about = self.service.about().get().execute()
+        return about
+
 
 
 
