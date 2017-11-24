@@ -398,10 +398,13 @@ class Methods:
     
       while True:
         try:
+
           download_progress, done = media_request.next_chunk()
+
         except errors.HttpError as error:
           print('An error occurred: %s' % error)
           return
+
         if download_progress:
           print('Download Progress: %d%%' % int(download_progress.progress() * 100))
         if done:
@@ -410,21 +413,29 @@ class Methods:
 
     ## CHANGE METHODS:
     def getstartpagetoken(self, service=None):
+        """
+        Get a token that marks the point in time where we start watching for remote changes.
+        """
         try:
+
             if not service:
                 service = self.service
+
             changes = service.changes().getStartPageToken()
-            print("Here is the dir:\t", dir(changes))
+
+            debug(self.verbose, "Here is the dir:\t", dir(changes))
+
             number = changes.execute()
-            print("finished calling execute")
-            print("The type of the number is:\t", type(number))
-            print("The number is:\t", number)
-            #service.changes
+
+            debug(self.verbose, "finished calling execute")
+            debug(self.verbose, "The type of the number is:\t", type(number))
+            debug(self.verbose, "The number is:\t", number)
+
         except Exception as e:
             print("An error occurred:\t", e)
             return
-        # Note that 'number' is a dict, and the token that should be passed to retrieve_all_changes() is number['startPageToken']
-        return number
+
+        return number['startPageToken']
 
     def retrieve_all_changes(self, service=None, start_change_id=None):
       """Retrieve a list of Change resources.
@@ -438,25 +449,34 @@ class Methods:
       """
       if not service:
         service = self.service
+
       result = []
       page_token = None
+
       while True:
         try:
+
           param = {}
+
           if start_change_id:
             param['startChangeId'] = start_change_id
+
           if page_token:
             param['pageToken'] = page_token
+
           changes = service.changes().list(**param).execute()
     
           result.extend(changes['items'])
+
           page_token = changes.get('nextPageToken')
+
           if not page_token:
             break
-        #except errors.HttpError, error as
+
         except Exception as e:
           print('An error occurred: %s' % e)
           break
+
       return result
 
     def about(self, service=None):

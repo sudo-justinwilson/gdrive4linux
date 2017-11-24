@@ -3,7 +3,7 @@ import json
 import os
 
 from googleservice import auth_with_apiclient
-from file_methods import Methods, calculatemd5
+from v2_methods import Methods, calculatemd5
 
 """
 This file is the main executable file. It should be the only file that needs to be executed, and it will import set everything up and execute whatever needs to be executed.
@@ -40,10 +40,10 @@ class Sync(Methods):
             self.gdrive_root_dir = os.path.expanduser('~/' + email)
         except AttributeError as e:
             print("You didn't provide a valid local_creds json file")
-            raise e
+            return
         except Exception as e:
             print("There was an error")
-            raise e
+            return
 
     #def mkdir_gdrive_root(self, service=self.service, path=None,):
     #    """
