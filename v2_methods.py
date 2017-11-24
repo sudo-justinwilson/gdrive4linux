@@ -479,6 +479,7 @@ class Methods:
 
       return result
 
+
     def about(self, service=None):
         """
         Returns an "about" object.
