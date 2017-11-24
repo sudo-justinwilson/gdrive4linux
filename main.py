@@ -22,18 +22,18 @@ class Sync(Methods):
             client_secrets= This specifies the path to the client secrets.
             pickle_path= (optional?) This specifies the local path where the pickled creds will/or are stored.
         """
-        # CONFIG_PATH stores app data (not user data):
-        CONFIG_PATH = os.path.expanduser('~/.gdrive4linux/')
-        if not os.path.exists(CONFIG_PATH):
-            os.mkdir(CONFIG_PATH)
+        # config_dir stores app data (not user data):
+        config_dir = os.path.expanduser('~/.gdrive4linux/')
+        if not os.path.exists(config_dir):
+            os.mkdir(config_dir)
 
         # This is where I'll store the file metadata:
-        self.SHELVE_PATH = CONFIG_PATH + 'metadata.shelve'
+        self.SHELVE_PATH = config_dir + 'metadata.shelve'
 
         try:
             with open(local_creds) as f:
                 creds = json.load(f)
-                instance = auth_with_apiclient(creds['client_secrets'], creds['gdrive_scope'], pickle_path = CONFIG_PATH + '.creds.pickle')
+                instance = auth_with_apiclient(creds['client_secrets'], creds['gdrive_scope'], pickle_path = config_dir + '.creds.pickle')
                 self.service = instance.create_service()
             email = self.about(self.service)['user']['emailAddress']
             #email = self.service.about().get().execute()['user']['emailAddress']

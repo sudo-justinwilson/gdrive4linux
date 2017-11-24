@@ -61,13 +61,15 @@ class Methods:
     
 # FILE METHODS:
 
-    def print_files_in_folder(self, service, folder_id, print_metadata=False):
+    def print_files_in_folder(self, folder_id, service=None, print_metadata=False):
       """print files belonging to a folder.
       This prints the child id, and I also call print_file_metadata(), which requires a child_id as an arg, and returns the name of the file, and the MIME type.
     
       Args:
         folder_id: ID of the folder to print files from.
       """
+      if not service:
+          service = self.service
       page_token = None
       while True:
         try:
@@ -92,10 +94,12 @@ class Methods:
           print('An error occurred: %s' % error)
           break
 
-    def get_metadata_to_download_files(self, service, folder_id, print_metadata=False, return_dict=False):
+    def get_metadata_to_download_files(self, folder_id, service=None, print_metadata=False, return_dict=False):
       """
       This method is to get the required metadata, so I can download all the files. What I gotta do now is create the structs so each file/dir can be a node in the tree.
       """
+      if not service:
+        service = self.service
       page_token = None
       while True:
         try:
@@ -134,7 +138,7 @@ class Methods:
           print('An error occurred: %s' % error)
           break
 
-    def sync_from_gdrive_to_local(self, service, folder_id='root', current_dir_path=None):
+    def sync_from_gdrive_to_local(self, service=None, folder_id='root', current_dir_path=None):
         """
         This is an initial method I am going to use to sync remote gdrive directories to the local disk. 
         It might be rough at first, but we'll see how it goes...
@@ -144,6 +148,8 @@ class Methods:
         # The current_dir_path needs to be passed as an arg:
         #if not current_dir_path:
             #current_dir_path = self._ROOT_DIR
+        if not service:
+            service = self.service
         page_token = None
         while True:
           try:
@@ -209,7 +215,7 @@ class Methods:
             print(e.args)
             break
 
-    def new_sync_from_gdrive_to_local(self, service, SHELVE_PATH, folder_id='root', current_dir_path=None):
+    def new_sync_from_gdrive_to_local(self, SHELVE_PATH, service=None, folder_id='root', current_dir_path=None):
         """
         This is an initial method I am going to use to sync remote gdrive directories to the local disk. 
         It might be rough at first, but we'll see how it goes...
@@ -218,6 +224,8 @@ class Methods:
         #    folder_id = 'root'
         #if not current_dir_path:
         #    current_dir_path = self._ROOT_DIR
+        if not service:
+            service = self.service
         page_token = None
         while True:
           try:
@@ -298,7 +306,7 @@ class Methods:
     
     # ...
     
-    def is_file_in_folder(self, service, folder_id, file_id):
+    def is_file_in_folder(self, folder_id, file_id, service=None):
       """Check if a file is in a specific folder.
     
       Args:
@@ -308,6 +316,8 @@ class Methods:
         Whether or not the file is in the folder.
       """
       try:
+        if not service:
+            service = self.service
         service.children().get(folderId=folder_id, childId=file_id).execute()
       except errors.HttpError as error:
         if error.resp.status == 404:
@@ -317,7 +327,7 @@ class Methods:
           raise error
       return True
     
-    def get_file_metadata(self,file_id):
+    def get_file_metadata(self,file_id, service=None):
         """
         Makes a call to get the file's metadata, and returns it as a dict.
         
@@ -325,18 +335,22 @@ class Methods:
             - file_id:  the id of the file to download.
         """
         try:
+            if not service:
+                service = self.service
             file_metadata = service.files().get(fileId = file_id).execute()
             return file_metadata
         except errors.HttpError as error:
             print('An error occurred: %s' % error)
 
-    def print_file_metadata(self, service, file_id, whole_file=False,return_dict=False):
+    def print_file_metadata(self, file_id, service=None, whole_file=False,return_dict=False):
       """print a file's metadata.
     
       Args:
         file_id: ID of the file to print metadata for.
       """
       try:
+        if not service:
+            service = self.service
         file = service.files().get(fileId=file_id).execute()
         if return_dict:
             return file
@@ -352,7 +366,7 @@ class Methods:
         print('An error occurred: %s' % error)
     
     
-    def print_file_content(self, file_id):
+    def print_file_content(self, file_id, service=None):
       """print(a file's content.)
     
       Args:
@@ -362,12 +376,14 @@ class Methods:
         File's content if successful, None otherwise.
       """
       try:
+        if not service:
+            service = self.service
         print(service.files().get_media(fileId=file_id).execute())
       except errors.HttpError as error:
         print('An error occurred: %s' % error)
     
     
-    def download_file(self, file_id, local_fd):
+    def download_file(self, file_id, local_fd, service=None):
       """Download a Drive file's content to the local filesystem.
     
       Args:
@@ -375,6 +391,8 @@ class Methods:
         local_fd: io.Base or file object, the stream that the Drive file's
             contents will be written to.
       """
+      if not service:
+        service = self.service
       request = service.files().get_media(fileId=file_id)
       media_request = http.MediaIoBaseDownload(local_fd, request)
     
@@ -391,8 +409,10 @@ class Methods:
           return
 
     ## CHANGE METHODS:
-    def getstartpagetoken(self, service):
+    def getstartpagetoken(self, service=None):
         try:
+            if not service:
+                service = self.service
             changes = service.changes().getStartPageToken()
             print("Here is the dir:\t", dir(changes))
             number = changes.execute()
@@ -403,9 +423,10 @@ class Methods:
         except Exception as e:
             print("An error occurred:\t", e)
             return
+        # Note that 'number' is a dict, and the token that should be passed to retrieve_all_changes() is number['startPageToken']
         return number
 
-    def retrieve_all_changes(self, service, start_change_id=None):
+    def retrieve_all_changes(self, service=None, start_change_id=None):
       """Retrieve a list of Change resources.
     
       Args:
@@ -415,6 +436,8 @@ class Methods:
       Returns:
         List of Change resources.
       """
+      if not service:
+        service = self.service
       result = []
       page_token = None
       while True:
@@ -432,16 +455,18 @@ class Methods:
             break
         #except errors.HttpError, error as
         except Exception as e:
-          print('An error occurred: %s' % error)
+          print('An error occurred: %s' % e)
           break
       return result
 
-    def about(self, service):
+    def about(self, service=None):
         """
         Returns an "about" object.
         """
+        if not service:
+            service = self.service
         #self.email = about['user']['emailAddress']
-        about = self.service.about().get().execute()
+        about = service.about().get().execute()
         return about
 
 
@@ -449,7 +474,7 @@ class Methods:
 
 if __name__ == '__main__':
     # This tests when verbose is set to True:
-    syncservice = SyncService(verbose=True)
+    syncservice = Methods(verbose=True)
     # This tests when verbose is set to False (default):
     #syncservice = SyncService()
     #print('before calling syncservice')
