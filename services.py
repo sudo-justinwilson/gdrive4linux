@@ -13,7 +13,7 @@ This file is the main executable file. It should be the only file that needs to 
 
 class Sync(Methods):
 
-    def __init__(self, local_creds):
+    def __init__(self, local_creds, verbose=True):
         """
         Class that actually executes the commands.
 
@@ -22,6 +22,7 @@ class Sync(Methods):
             client_secrets= This specifies the path to the client secrets.
             pickle_path= (optional?) This specifies the local path where the pickled creds will/or are stored.
         """
+        self.verbose = verbose
         # config_dir stores app data (not user data):
         config_dir = os.path.expanduser('~/.gdrive4linux/')
         if not os.path.exists(config_dir):
@@ -53,29 +54,42 @@ class Sync(Methods):
 
 if __name__ == '__main__':
     instance = Sync('.local_path')
-    print(dir(instance))
-    print("The email address is:")
-    #print(instance.about(instance.service)['user']['emailAddress'])
-    #print(type(instance.email))
-    print(instance.gdrive_root_dir) 
+    #print(dir(instance))
+    #print("The email address is:")
+    ##print(instance.about(instance.service)['user']['emailAddress'])
+    ##print(type(instance.email))
+    #print(instance.gdrive_root_dir) 
+
+    ## test get_changes:
+    #changes = instance.get_changes('4244')
+    #print(type(changes))
+    #print(changes.keys())
+    changes = instance.new_retrieve_all_changes(start_change_id='240')
+    print(type(changes))
+    print(dir(changes))
+    print("The len of items is:")
+    print(len(changes['items']))
+    print("newStartPageToken is:")
+    print(changes['newStartPageToken'])
+    print(changes.keys())
     
-    saved_start_page_token = '4244'
-    # Begin with our last saved start token for this user or the
-    # current token from getStartPageToken()
-    page_token = saved_start_page_token;
-    while page_token is not None:
-        response = instance.service.changes().list(pageToken=page_token,
-                                                spaces='drive').execute()
-        for change in response.get('items'):
-            # Process change
-            print('Change found for file: %s' % change.get('fileId'))
-        if 'newStartPageToken' in response:
-            # Last page, save this token for the next polling interval
-            saved_start_page_token = response.get('newStartPageToken')
-        page_token = response.get('nextPageToken')
-        print()
-        print()
-        print()
-        print(dir(page_token))
-        print(type(page_token))
-        print(page_token)
+    #saved_start_page_token = '4244'
+    ## Begin with our last saved start token for this user or the
+    ## current token from getStartPageToken()
+    #page_token = saved_start_page_token;
+    #while page_token is not None:
+    #    response = instance.service.changes().list(pageToken=page_token,
+    #                                            spaces='drive').execute()
+    #    for change in response.get('items'):
+    #        # Process change
+    #        print('Change found for file: %s' % change.get('fileId'))
+    #    if 'newStartPageToken' in response:
+    #        # Last page, save this token for the next polling interval
+    #        saved_start_page_token = response.get('newStartPageToken')
+    #    page_token = response.get('nextPageToken')
+    #    print()
+    #    print()
+    #    print()
+    #    print(dir(page_token))
+    #    print(type(page_token))
+    #    print(page_token)

@@ -21,8 +21,7 @@ def calculatemd5(filename, block_size=2**20):
 #class SyncService:
 class Methods:
     """
-    This class contains all the methods relating to files.
-    I have temporarily defined alot of runtime variables in the init just for cnvenience, but I have to remember to remove it after...
+    This class contains all the Google drive API v2 methods. All the methods should be stateless (any stateful methods should go in main.py).
     """
     def __init__(self, verbose=False):
         """
@@ -220,41 +219,52 @@ class Methods:
         This is an initial method I am going to use to sync remote gdrive directories to the local disk. 
         It might be rough at first, but we'll see how it goes...
         """
-        #if not folder_id:
-        #    folder_id = 'root'
-        #if not current_dir_path:
-        #    current_dir_path = self._ROOT_DIR
+
         if not service:
             service = self.service
+
         page_token = None
+
         while True:
           try:
+
             param = {}
+
             if page_token:
               param['pageToken'] = page_token
+
             # Add orderBy=folder,title param, so the results are ordered by directories first, then name:
             param['orderBy'] = 'folder,title'
+
             debug(self.verbose, 'Calling\t children().list(), etc:')
+
             children = service.children().list(
                 folderId=folder_id, **param).execute()
     
             debug(self.verbose, 'Entering for child loop:')
+
             for child in children.get('items', []):
               debug(self.verbose, 'In for child loop. Calling file_meta method:')
+              
               file_meta = self.get_file_metadata(child['id'])
+
               # Store the file metadata in a shelve file:
               debug(self.verbose, "HERE IS THE SHELVE.PATH:\t", SHELVE_PATH)
+
               with shelve.open(SHELVE_PATH) as shelve_db:
                 shelve_db[child['id']] = file_meta
+
               debug(self.verbose, 'File Id: %s' % child['id'])
               debug(self.verbose, 'The name of the file is:\t %s' % file_meta['title'])
               debug(self.verbose, 'MIME type:\t %s' % file_meta['mimeType'])
               debug(self.verbose, 'The id of the files parents is:\t %s' % file_meta['parents'][0]['id'])
               debug(self.verbose, 'The MD5 is:\t %s' % file_meta.get('md5Checksum'))
+
               ## START SYNC
               local_path = current_dir_path + '/' + file_meta['title']
-              # The following is a dict which keys are the different types of MIME types of the files in google drive, and the values are how google describes the different types of files:
-              # google docs, sheets, presentations, etc all start with "application/vnd.google-apps."
+
+              #  The following maps MIME aliases:
+              # all Google docs start with "application/vnd.google-apps."
               mime_types = { 
                     "folder" : "application/vnd.google-apps.folder",
                     "google_file" : "application/vnd.google-apps.",
@@ -264,47 +274,61 @@ class Methods:
                         
               # test if MIME type = drive folder:
               if file_meta['mimeType'] == mime_types['folder']:
+
                 # if directory doesn't already exist:
                 if not os.path.exists(local_path):
+
                   # create directory:
                   debug(self.verbose, 'MAKING DIRECTORY:\t', local_path)
                   os.mkdir(local_path)
-                # Calling itself recursively:
+
                 debug(self.verbose, 'Calling sync recursively:')
-                #new_dir_path = current_dir_path + '/' file_meta['title']
                 debug(self.verbose, 'This is the new_dir_path:\t', local_path)
+
+                # Calling itself recursively:
                 self.new_sync_from_gdrive_to_local(service, SHELVE_PATH, folder_id = file_meta['id'], current_dir_path = local_path)
-              # test if the mime type of the file is not a Google doc, sheet, presentation, etc, as we can't download those sort of files without exporting them to a different format - which will cause problems with syncing:
+
+              # test if MIME type is NOT Google document:
               else: 
                 if not file_meta['mimeType'].startswith(mime_types["google_file"]):
+
                     debug(self.verbose, 'This is the filename:\t', local_path)
+
                     ## test if the file already exists:
                     if os.path.exists(local_path):
                         try:
+
                             # test if the file contents are the same as the remote file:
                             debug(self.verbose, "The remote md5 is:\t", file_meta['md5Checksum'])
                             debug(self.verbose, "The local  md5 is:\t", calculatemd5(local_path))
+
                             if file_meta['md5Checksum'] != calculatemd5(local_path):
-                                # download the file:
+
                                 debug(self.verbose, "The file has changed. Downloading..")
+
+                                # download the file:
                                 with open(local_path, 'wb') as f:
                                     self.download_file(file_meta['id'], f)
+
                             else:
+
                                 debug(self.verbose, "The file already exists and the hashes match!")
                         except Exception as e:
                             print("An error occurred:\t", e)
+
             page_token = children.get('nextPageToken')
+
             if not page_token:
               break
+
           except errors.HttpError as error:
             print('An HTTP error occurred: %s' % error)
             break
+
           except TypeError as error:
             print(e.args)
             break
     
-    
-    # ...
     
     def is_file_in_folder(self, folder_id, file_id, service=None):
       """Check if a file is in a specific folder.
@@ -437,6 +461,7 @@ class Methods:
 
         return number['startPageToken']
 
+
     def retrieve_all_changes(self, service=None, start_change_id=None):
       """Retrieve a list of Change resources.
     
@@ -480,6 +505,99 @@ class Methods:
       return result
 
 
+    def new_retrieve_all_changes(self, service=None, start_change_id=None):
+      """Retrieve a list of Change resources.
+    
+      Args:
+        service: Drive API service instance.
+        start_change_id: ID of the change to start retrieving subsequent changes
+                         from or None.
+      Returns:
+        A dict with the following keys:
+            items:  List of Change resources.
+            new_token:  The new token which can be used for next changes check.
+      """
+      if not service:
+        service = self.service
+
+      result = {
+        'items' : [],
+        'newStartPageToken' : None,
+        }
+
+      debug(self.verbose, "The type of result is: ", str(type(result)))
+      page_token = None
+
+      while True:
+        try:
+
+          debug(self.verbose, "Entered loop")
+
+          param = {}
+
+          if start_change_id:
+            param['startChangeId'] = start_change_id
+            # the following is for testing - REMOVE:
+            param['maxResults'] = 4
+            debug(self.verbose, " line 540")
+
+          if page_token:
+            param['pageToken'] = page_token
+            debug(self.verbose, " line 544")
+
+          changes = service.changes().list(**param).execute()
+    
+          result['items'].extend(changes['items'])
+          debug(self.verbose, " line 549")
+
+          page_token = changes.get('nextPageToken')
+
+          if not page_token:
+            result['newStartPageToken'] = changes['newStartPageToken']
+            debug(self.verbose, " line 555")
+            break
+
+        except Exception as e:
+          print('An error occurred: %s' % e)
+          break
+
+      return result
+    
+
+    def list_changes(self, start_page_token, service=None):
+        """
+        List all the changes from a certain point in time, the point in time being represented by the "start_page_token".
+
+        Returns:
+        A dict with the following keys:
+
+        etag:  unique change ID
+        items:  this is a list of change objects for each change
+        largestChangeId:  This is the last change in the 'items' list
+        kind:  The tpe of file (always drive#file)
+        selfLink:  A link back to this reference
+        newStartPageToken:  This will be where the next set of changes will start from. If there are no new changes, the token will remain the same and not increment.
+
+        Args:
+            start_page_token:   The token returned by self.getStartPageToken.
+            service:    The service that this method will be associated with.
+        """
+
+        if not service:
+            service = self.service
+
+        # page_token tells google which point to list the changes from:
+        page_token = start_page_token
+
+        # Make the API call, and return a change list object(dict):
+        response = service.changes().list(pageToken=page_token,
+            spaces='drive').execute()
+
+        return response
+
+
+
+    # ABOUT METHODS:
     def about(self, service=None):
         """
         Returns an "about" object.
