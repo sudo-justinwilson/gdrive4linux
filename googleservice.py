@@ -1,4 +1,5 @@
 import os
+
 import webbrowser
 import httplib2
 import pickle
@@ -54,7 +55,12 @@ class auth_with_apiclient:
 
         # This tests if a file exists at pickle_path, and if there is, it indicates that we have already got an access and refresh token - so we don't need to go through the initial authorization code flow:
         if os.path.exists(self.pickle_path):
-            self.credentials = pickle.load( open(self.pickle_path, 'rb') ).credentials
+            try:
+                self.credentials = pickle.load( open(self.pickle_path, 'rb') ).credentials
+            except Exception as e:
+                debug(self.verbose, "There was an error with unpickling the credentials")
+                raise e()
+
             self.pickled = True
         else:
             self.pickled = False
