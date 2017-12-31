@@ -2,9 +2,11 @@ import os
 import webbrowser
 import httplib2
 import pickle
+
 from webserver import WebServer
 from apiclient.discovery import build
 from oauth2client import client, file
+from testing import debug
 
 class auth_with_apiclient:
     """
@@ -15,7 +17,7 @@ class auth_with_apiclient:
         - Refactor so this program can accept command-line arguments
     """
 
-    def __init__(self, client_path=None, scope=None, pickle_path=None):
+    def __init__(self, client_path=None, scope=None, pickle_path=None, verbose=False):
         """
         Create an auth_with_apiclient instance.
 
@@ -23,24 +25,33 @@ class auth_with_apiclient:
         - client_path:      This is the path to the app credentials from the Google developer's console.
         - scope:            This specifies the amount of access (or permissions) requested from Google.
         - pickle_path:      Specifies the path where the access and refresh tokens are stored as a pickled file.
+        - verbose:          Print debug output.
         """
+        self.verbose = verbose
+
         if not client_path:
             raise Exception('A path to a json file containing the client_id and client_secret needs to be provided')
+
         # Mandatory arg:
         if not scope:
             raise Exception('A scope needs to be provided')
+
         # Mandatory arg:
         if not pickle_path:
             raise Exception('A pickle_path needs to be provided')
+
         self.client_path = client_path
         self.scope = scope
         self.pickle_path = pickle_path
         self.webserver = WebServer()
+
         # Defines the type of oauth2.0 flow that we will use:
         self.flow = client.flow_from_clientsecrets(self.client_path, scope = self.scope, redirect_uri = self.webserver.redirect_uri)
+
         # Returns the url to request an authorization code:
         self.auth_uri = self.flow.step1_get_authorize_url()
         self.credentials = None
+
         # This tests if a file exists at pickle_path, and if there is, it indicates that we have already got an access and refresh token - so we don't need to go through the initial authorization code flow:
         if os.path.exists(self.pickle_path):
             self.credentials = pickle.load( open(self.pickle_path, 'rb') ).credentials
@@ -58,26 +69,41 @@ class auth_with_apiclient:
         if self.pickled is False:
             if not url:
                 url = self.auth_uri
+
             if not auth_code: 
                 auth_code = self.get_auth_code(url)
+
             self.credentials = self.flow.step2_exchange(auth_code)
             self.pickled = True
+
             try:
                 pickle.dump( self, open(self.pickle_path, 'wb') )
+
             except FileNotFoundError as e:
                 print("The pickle path does not exist:\t", e.filename)
                 return -1
+
         if not http_auth:
             http_auth = self.credentials.authorize(httplib2.Http())
+
         drive_service = build('drive', version, http=http_auth)
+
         return drive_service
 
     def get_auth_code(self, url):
+        """
+        This opens up the webbrowser to initially grant permission for the app to access the usuer's resource.
+        It returns the auth_code which should be swapped for the tokens.
+        """
+
         webbrowser.open_new(url)
         val = None
-        print('the val is: ', val)
+
+        debug(self.verbose, 'the val is: ', val)
+
         val = self.webserver.catch_response()
-        print('the val after calling webserver.catch_response() is: ', val)
+
+        debug(self.verbose, 'the val after calling webserver.catch_response() is: ', val)
         return val
 
 if __name__ == '__main__':
