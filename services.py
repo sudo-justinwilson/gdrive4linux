@@ -6,7 +6,9 @@ from googleservice import auth_with_apiclient
 from v2_methods import Methods, calculatemd5
 
 """
-This file is the main executable file. It should be the only file that needs to be executed, and it will import set everything up and execute whatever needs to be executed.
+This file is the main executable file. It should be the only file that needs to
+be executed, and it will import set everything up and execute whatever needs to
+be executed.
 """
 
 # define local paths:
